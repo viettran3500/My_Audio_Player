@@ -22,6 +22,10 @@ class NotificationReceiver: BroadcastReceiver() {
                     serviceIntent.putExtra("ActionName", "previous")
                     context!!.startService(serviceIntent)
                 }
+                ApplicationClass.ACTION_CLOSE->{
+                    serviceIntent.putExtra("ActionName", "close")
+                    context!!.startService(serviceIntent)
+                }
             }
         }
     }

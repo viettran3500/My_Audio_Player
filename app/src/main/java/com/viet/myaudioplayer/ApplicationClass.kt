@@ -12,6 +12,7 @@ class ApplicationClass: Application() {
         val ACTION_PREVIOUS = "actionprevious"
         val ACTION_NEXT = "actionnext"
         val ACTION_PLAY = "actionplay"
+        val ACTION_CLOSE = "actionclose"
         val CHANNEL_ID_1 = "channel1"
         val CHANNEL_ID_2 = "channel2"
     }
@@ -31,6 +32,8 @@ class ApplicationClass: Application() {
 
             val channel2: NotificationChannel = NotificationChannel(CHANNEL_ID_2, "Channel(2)", NotificationManager.IMPORTANCE_HIGH)
             channel2.description = "Channel 2 Desc..."
+
+            channel2.setSound(null, null)
 
             val notificationManager: NotificationManager = getSystemService(NotificationManager::class.java)
             notificationManager.createNotificationChannel(channel1)

@@ -36,7 +36,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     var position = -1
     lateinit var uri: Uri
-    //var mediaPlayer: MediaPlayer? = null
 
     var thread: HandlerThread = HandlerThread("Thread")
     lateinit var playThread: Thread
@@ -56,6 +55,17 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
         getIntentMethod()
 
+        runnable = Runnable {
+            if (musicService != null) {
+                val mCurrentPosition = musicService!!.getCurrentPosition() / 1000
+                seekBar.progress = mCurrentPosition
+                this.runOnUiThread {
+                    tvDurationPlayer.text = formattedtime(mCurrentPosition)
+                }
+            }
+            handler.postDelayed(runnable, 1000)
+        }
+        handler.post(runnable)
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (musicService != null && fromUser) {
@@ -73,34 +83,52 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             }
 
         })
-        runnable = Runnable {
-            if (musicService != null) {
-                val mCurrentPosition = musicService!!.getCurrentPosition() / 1000
-                seekBar.progress = mCurrentPosition
-                this.runOnUiThread {
-                    tvDurationPlayer.text = formattedtime(mCurrentPosition)
-                }
-            }
-            handler.postDelayed(runnable, 1000)
-        }
-        handler.post(runnable)
+
+        checkShuffleRepeat()
 
         btnShuffle.setOnClickListener {
-            if (MainActivity.shuffleBoolean) {
-                MainActivity.shuffleBoolean = false
+            if (MusicService.shuffleBoolean) {
+                MusicService.shuffleBoolean = false
                 btnShuffle.setImageResource(R.drawable.ic_shuffle_off)
             } else {
-                MainActivity.shuffleBoolean = true
+                MusicService.shuffleBoolean = true
                 btnShuffle.setImageResource(R.drawable.ic_shuffle_on)
             }
         }
+
         btnRepeat.setOnClickListener {
-            if (MainActivity.repeatBoolean) {
-                MainActivity.repeatBoolean = false
-                btnRepeat.setImageResource(R.drawable.ic_repeat_off)
-            } else {
-                MainActivity.repeatBoolean = true
+            when(MusicService.repeatBoolean){
+                2->{
+                    MusicService.repeatBoolean = 0
+                    btnRepeat.setImageResource(R.drawable.ic_repeat_off)
+                }
+                1-> {
+                    MusicService.repeatBoolean = 2
+                    btnRepeat.setImageResource(R.drawable.ic_repeat_on)
+                }
+                0->{
+                    MusicService.repeatBoolean = 1
+                    btnRepeat.setImageResource(R.drawable.ic_repeat_1)
+                }
+            }
+        }
+    }
+
+    fun checkShuffleRepeat(){
+        if(MusicService.shuffleBoolean)
+            btnShuffle.setImageResource(R.drawable.ic_shuffle_on)
+        else
+            btnShuffle.setImageResource(R.drawable.ic_shuffle_off)
+
+        when(MusicService.repeatBoolean){
+            2->{
                 btnRepeat.setImageResource(R.drawable.ic_repeat_on)
+            }
+            1-> {
+                btnRepeat.setImageResource(R.drawable.ic_repeat_1)
+            }
+            0->{
+                btnRepeat.setImageResource(R.drawable.ic_repeat_off)
             }
         }
     }
@@ -117,6 +145,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     override fun onPause() {
         super.onPause()
+        handler.removeCallbacks(runnable)
         unbindService(this)
     }
 
@@ -137,9 +166,9 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         if (musicService!!.isPlaying()) {
             musicService!!.stop()
             musicService!!.release()
-            if (MainActivity.shuffleBoolean && !MainActivity.repeatBoolean) {
+            if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
                 position = getRandom(listSongs.size - 1)
-            } else if (!MainActivity.shuffleBoolean && !MainActivity.repeatBoolean) {
+            } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                 position = if ((position - 1) < 0) listSongs.size - 1 else position - 1
             }
 
@@ -157,9 +186,9 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         } else {
             musicService!!.stop()
             musicService!!.release()
-            if (MainActivity.shuffleBoolean && !MainActivity.repeatBoolean) {
+            if (MusicService.shuffleBoolean && MusicService.repeatBoolean ==1) {
                 position = getRandom(listSongs.size - 1)
-            } else if (!MainActivity.shuffleBoolean && !MainActivity.repeatBoolean) {
+            } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                 position = if ((position - 1) < 0) listSongs.size - 1 else position - 1
             }
             uri = Uri.parse(listSongs[position].path)
@@ -192,9 +221,9 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         if (musicService!!.isPlaying()) {
             musicService!!.stop()
             musicService!!.release()
-            if (MainActivity.shuffleBoolean && !MainActivity.repeatBoolean) {
+            if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
                 position = getRandom(listSongs.size - 1)
-            } else if (!MainActivity.shuffleBoolean && !MainActivity.repeatBoolean) {
+            } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                 position = (position + 1) % listSongs.size
             }
             uri = Uri.parse(listSongs[position].path)
@@ -211,9 +240,9 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         } else {
             musicService!!.stop()
             musicService!!.release()
-            if (MainActivity.shuffleBoolean && !MainActivity.repeatBoolean) {
+            if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
                 position = getRandom(listSongs.size - 1)
-            } else if (!MainActivity.shuffleBoolean && !MainActivity.repeatBoolean) {
+            } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                 position = (position + 1) % listSongs.size
             }
             uri = Uri.parse(listSongs[position].path)
@@ -227,6 +256,15 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             musicService!!.showNotification(R.drawable.ic_play)
             btnPlayPause.setBackgroundResource(R.drawable.ic_play)
         }
+    }
+
+    override fun closeBtnClick() {
+        musicService!!.stopSelf()
+        finish()
+    }
+
+    override fun changeBtnClick() {
+        btnPlayPause.setBackgroundResource(R.drawable.ic_play)
     }
 
     private fun getRandom(i: Int): Int {
@@ -282,18 +320,15 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     private fun getIntentMethod() {
         position = intent.getIntExtra("position", -1)
-        var sender: String? = intent.getStringExtra("sender")
+        val sender: String? = intent.getStringExtra("sender")
 
-        if (sender != null && sender == "albumDetails") {
-            listSongs = AlbumDetails.albumSongs
+        listSongs = if (sender != null && sender == "albumDetails") {
+            AlbumDetails.albumSongs
         } else {
-            listSongs = MainActivity.musicFiles
+            MainActivity.musicFiles
         }
-        if (listSongs != null) {
-            btnPlayPause.setImageResource(R.drawable.ic_pause)
-            uri = Uri.parse(listSongs[position].path)
-        }
-
+        btnPlayPause.setImageResource(R.drawable.ic_pause)
+        uri = Uri.parse(listSongs[position].path)
         val intent: Intent = Intent(this, MusicService::class.java)
         intent.putExtra("servicePosition", position)
         startService(intent)

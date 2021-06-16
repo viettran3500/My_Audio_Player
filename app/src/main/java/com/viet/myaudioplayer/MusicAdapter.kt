@@ -2,6 +2,7 @@ package com.viet.myaudioplayer
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
@@ -44,7 +45,7 @@ class MusicAdapter(var mContext: Context, var mFile: MutableList<MusicFiles>): R
         var albumArt: ImageView = view.findViewById(R.id.imgMusic)
     }
 
-    fun getAlbumArt(uri: String): ByteArray? {
+    private fun getAlbumArt(uri: String): ByteArray? {
         var retriever: MediaMetadataRetriever = MediaMetadataRetriever()
         retriever.setDataSource(uri)
         var art: ByteArray? = retriever.embeddedPicture

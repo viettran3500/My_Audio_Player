@@ -1,14 +1,17 @@
 package com.viet.myaudioplayer
 
 import android.Manifest
+import android.content.ContentProvider
 import android.content.Context
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import kotlinx.android.synthetic.main.activity_main.*
@@ -20,8 +23,6 @@ class MainActivity : AppCompatActivity() {
     companion object{
         var musicFiles: MutableList<MusicFiles> = mutableListOf()
         var albums: MutableList<MusicFiles> = mutableListOf()
-        var shuffleBoolean = false
-        var repeatBoolean = false
     }
 
 
@@ -79,28 +80,33 @@ class MainActivity : AppCompatActivity() {
 
     fun getAllAudio(context: Context): MutableList<MusicFiles>{
         var duplicate: MutableList<String> = mutableListOf()
-
         var tempAudioList: MutableList<MusicFiles> = mutableListOf()
+
         var uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+
         var projection = arrayOf(MediaStore.Audio.Media.ALBUM,
             MediaStore.Audio.Media.TITLE,
             MediaStore.Audio.Media.DURATION,
             MediaStore.Audio.Media.DATA,
             MediaStore.Audio.Media.ARTIST)
+
         var cursor: Cursor? = context.contentResolver.query(uri,projection,null,null,null)
+
         if(cursor!=null){
             while (cursor.moveToNext()){
-                var album = cursor.getString(0)
-                var title = cursor.getString(1)
-                var duration = cursor.getString(2)
+                val album = cursor.getString(0)
+                val title = cursor.getString(1)
+                val duration = cursor.getString(2)
                 var path = cursor.getString(3)
-                var artist = cursor.getString(4)
+                val artist = cursor.getString(4)
 
-                var musicfile = MusicFiles(path,title,artist,album,duration)
-                tempAudioList.add(musicfile)
-                if(!duplicate.contains(album)){
-                    albums.add(musicfile)
-                    duplicate.add(album)
+                if(duration.toInt() > 30000){
+                    val musicfile = MusicFiles(path,title,artist,album,duration)
+                    tempAudioList.add(musicfile)
+                    if(!duplicate.contains(album)){
+                        albums.add(musicfile)
+                        duplicate.add(album)
+                    }
                 }
             }
             cursor.close()

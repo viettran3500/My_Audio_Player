@@ -14,18 +14,24 @@ import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
 import android.support.v4.media.session.MediaSessionCompat
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 
-class MusicService(): Service(),MediaPlayer.OnCompletionListener {
+class MusicService: Service(),MediaPlayer.OnCompletionListener {
 
+    companion object{
+        var shuffleBoolean = false
+        var repeatBoolean = 0
+    }
     var mBinder: IBinder = MyBinder()
     var mediaPlayer: MediaPlayer? = null
     var musicFiles: MutableList<MusicFiles> = mutableListOf()
-    lateinit var uri: Uri
+    var uri: Uri? = null
     var position: Int = -1
     var actionPlaying: ActionPlaying? = null
     lateinit var mediaSessionCompat: MediaSessionCompat
+
 
     override fun onCreate() {
         mediaSessionCompat = MediaSessionCompat(baseContext,"My Audio")
@@ -33,6 +39,7 @@ class MusicService(): Service(),MediaPlayer.OnCompletionListener {
     }
 
     override fun onBind(p0: Intent?): IBinder? {
+        Log.e("aaa","aaa")
         return mBinder
     }
 
@@ -43,7 +50,7 @@ class MusicService(): Service(),MediaPlayer.OnCompletionListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        var myPosition = intent!!.getIntExtra("servicePosition", -1)
+        val myPosition = intent!!.getIntExtra("servicePosition", -1)
         val actionName: String? = intent.getStringExtra("ActionName")
         if(myPosition!=-1){
             playMedia(myPosition)
@@ -59,24 +66,30 @@ class MusicService(): Service(),MediaPlayer.OnCompletionListener {
                 "previous"->{
                     actionPlaying?.prevBtnClick()
                 }
+                "close"->{
+                    actionPlaying?.closeBtnClick()
+                }
             }
         }
-        return START_STICKY
+        return START_NOT_STICKY
     }
 
     private fun playMedia(startPosition: Int) {
         musicFiles = PlayerActivity.listSongs
         position = startPosition
-        if(mediaPlayer!= null){
-            mediaPlayer!!.stop()
-            mediaPlayer!!.release()
-            if(musicFiles.size!=0){
+
+        if(uri != Uri.parse(musicFiles[position].path)){
+            if(mediaPlayer!= null){
+                mediaPlayer!!.stop()
+                mediaPlayer!!.release()
+                if(musicFiles.size!=0){
+                    createMediaPlayer(position)
+                    mediaPlayer!!.start()
+                }
+            }else{
                 createMediaPlayer(position)
                 mediaPlayer!!.start()
             }
-        }else{
-            createMediaPlayer(position)
-            mediaPlayer!!.start()
         }
     }
 
@@ -109,6 +122,7 @@ class MusicService(): Service(),MediaPlayer.OnCompletionListener {
     fun createMediaPlayer(positionIn: Int){
         position = positionIn
         uri = Uri.parse(musicFiles[position].path)
+        Log.d("aaa","$position")
         mediaPlayer = MediaPlayer.create(baseContext, uri)
     }
 
@@ -120,8 +134,14 @@ class MusicService(): Service(),MediaPlayer.OnCompletionListener {
         if(actionPlaying != null){
             actionPlaying!!.nextBtnClick()
             if(mediaPlayer!=null){
+
                 createMediaPlayer(position)
                 mediaPlayer!!.start()
+                showNotification(R.drawable.ic_pause)
+
+                if(position == 0 && repeatBoolean == 0){
+                    actionPlaying!!.playPauseBtnClick()
+                }
                 onCompleted()
             }
         }
@@ -153,6 +173,12 @@ class MusicService(): Service(),MediaPlayer.OnCompletionListener {
         var nextPending: PendingIntent =
             PendingIntent.getBroadcast(this, 0, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
+        var closeIntent: Intent = Intent(this, NotificationReceiver::class.java).setAction(
+            ApplicationClass.ACTION_CLOSE
+        )
+        var closePending: PendingIntent =
+            PendingIntent.getBroadcast(this, 0, closeIntent, PendingIntent.FLAG_UPDATE_CURRENT)
+
         var picture: ByteArray? = null
         picture = getAlbumArt(musicFiles[position].path)
         var thumb: Bitmap? = null
@@ -169,9 +195,11 @@ class MusicService(): Service(),MediaPlayer.OnCompletionListener {
                 .addAction(R.drawable.ic_skip_previous, "Previous", prevPending)
                 .addAction(playPauseBtn, "Pause", pausePending)
                 .addAction(R.drawable.ic_skip_next, "Next", nextPending)
+                .addAction(R.drawable.ic_close, "Close", closePending)
                 .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
                     .setMediaSession(mediaSessionCompat.sessionToken))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setSound(null)
                 .setOnlyAlertOnce(true)
                 .build()
 
@@ -186,5 +214,19 @@ class MusicService(): Service(),MediaPlayer.OnCompletionListener {
         var art: ByteArray? = retriever.embeddedPicture
         retriever.release()
         return art
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d("aaa","de")
+        if(mediaPlayer!=null){
+            mediaPlayer!!.release()
+            mediaPlayer = null
+        }
+    }
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        Log.d("aaa","un")
+        return super.onUnbind(intent)
     }
 }
