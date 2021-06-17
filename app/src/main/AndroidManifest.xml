@@ -13,7 +13,7 @@
         android:supportsRtl="true"
         android:name=".ApplicationClass"
         android:theme="@style/AppTheme">
-        <activity android:name=".MainActivity">
+        <activity android:name=".activity.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -21,8 +21,8 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".AlbumDetails"></activity>
-        <activity android:name=".PlayerActivity" />
+        <activity android:name=".activity.AlbumDetails"></activity>
+        <activity android:name=".activity.PlayerActivity" />
 
         <service android:name=".MusicService" android:enabled="true"/>
         <receiver android:name=".NotificationReceiver" android:enabled="true" >

@@ -1,10 +1,8 @@
 package com.viet.myaudioplayer
 
 import android.app.Notification
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -13,10 +11,13 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
+import android.os.ParcelFileDescriptor
 import android.support.v4.media.session.MediaSessionCompat
 import android.util.Log
-import android.widget.Toast
 import androidx.core.app.NotificationCompat
+import com.viet.myaudioplayer.activity.PlayerActivity
+import com.viet.myaudioplayer.model.MusicFiles
+import java.lang.Exception
 
 class MusicService: Service(),MediaPlayer.OnCompletionListener {
 
@@ -179,12 +180,8 @@ class MusicService: Service(),MediaPlayer.OnCompletionListener {
         var closePending: PendingIntent =
             PendingIntent.getBroadcast(this, 0, closeIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        var picture: ByteArray? = null
-        picture = getAlbumArt(musicFiles[position].path)
-        var thumb: Bitmap? = null
-        if (picture != null) {
-            thumb = BitmapFactory.decodeByteArray(picture, 0, picture.size)
-        } else {
+        var thumb: Bitmap? = getAlbumArt(musicFiles[position].albumID)
+        if (thumb == null) {
             thumb = BitmapFactory.decodeResource(resources, R.drawable.music)
         }
         val notification: Notification =
@@ -208,12 +205,15 @@ class MusicService: Service(),MediaPlayer.OnCompletionListener {
         startForeground(1, notification)
     }
 
-    fun getAlbumArt(uri: String): ByteArray? {
-        var retriever: MediaMetadataRetriever = MediaMetadataRetriever()
-        retriever.setDataSource(uri)
-        var art: ByteArray? = retriever.embeddedPicture
-        retriever.release()
-        return art
+    private fun getAlbumArt(uri: String): Bitmap? {
+        return try {
+            val pfd: ParcelFileDescriptor? = this.contentResolver.openFileDescriptor(Uri.parse(uri), "r")
+            val fileDescriptor = pfd!!.fileDescriptor
+            BitmapFactory.decodeFileDescriptor(fileDescriptor)
+        }catch (e: Exception){
+            null
+        }
+
     }
 
     override fun onDestroy() {

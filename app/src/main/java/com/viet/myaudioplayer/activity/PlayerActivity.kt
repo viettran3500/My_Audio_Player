@@ -1,30 +1,22 @@
-package com.viet.myaudioplayer
+package com.viet.myaudioplayer.activity
 
-import android.app.Notification
-import android.app.NotificationManager
-import android.app.PendingIntent
-import android.app.Service
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
-import android.media.MediaPlayer
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.IBinder
-import android.support.v4.media.session.MediaSessionCompat
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
-import android.widget.ImageView
 import android.widget.SeekBar
-import android.widget.Toast
-import androidx.core.app.NotificationCompat
+import com.viet.myaudioplayer.ActionPlaying
+import com.viet.myaudioplayer.MusicService
+import com.viet.myaudioplayer.R
+import com.viet.myaudioplayer.model.MusicFiles
 import kotlinx.android.synthetic.main.activity_player.*
 import java.util.*
 
@@ -336,7 +328,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     fun metaData(uri: Uri) {
         var retriever: MediaMetadataRetriever = MediaMetadataRetriever()
-        retriever.setDataSource(uri.toString())
+        retriever.setDataSource(this,uri)
         var durationTotal: Int = listSongs[position].duration.toInt() / 1000
         tvDurationTotal.text = formattedtime(durationTotal)
         var art: ByteArray? = retriever.embeddedPicture

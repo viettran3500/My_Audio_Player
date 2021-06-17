@@ -1,19 +1,22 @@
-package com.viet.myaudioplayer
+package com.viet.myaudioplayer.activity
 
 import android.Manifest
-import android.content.ContentProvider
+import android.content.ContentUris
 import android.content.Context
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.viet.myaudioplayer.fragment.AlbumFragment
+import com.viet.myaudioplayer.R
+import com.viet.myaudioplayer.fragment.SongsFragment
+import com.viet.myaudioplayer.adapter.ViewPagerAdapter
+import com.viet.myaudioplayer.model.MusicFiles
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -71,7 +74,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun initViewPager() {
-        viewPagerAdapter = ViewPagerAdapter(supportFragmentManager)
+        viewPagerAdapter =
+            ViewPagerAdapter(
+                supportFragmentManager
+            )
         viewPagerAdapter.addFragments(SongsFragment(), "Songs")
         viewPagerAdapter.addFragments(AlbumFragment(), "Albums")
         viewPager.adapter = viewPagerAdapter
@@ -87,8 +93,9 @@ class MainActivity : AppCompatActivity() {
         var projection = arrayOf(MediaStore.Audio.Media.ALBUM,
             MediaStore.Audio.Media.TITLE,
             MediaStore.Audio.Media.DURATION,
-            MediaStore.Audio.Media.DATA,
-            MediaStore.Audio.Media.ARTIST)
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.ARTIST,
+            MediaStore.Audio.Media.ALBUM_ID)
 
         var cursor: Cursor? = context.contentResolver.query(uri,projection,null,null,null)
 
@@ -98,10 +105,22 @@ class MainActivity : AppCompatActivity() {
                 val title = cursor.getString(1)
                 val duration = cursor.getString(2)
                 var path = cursor.getString(3)
+                path = ContentUris.withAppendedId(uri,path.toLong()).toString()
                 val artist = cursor.getString(4)
+                var albumId = cursor.getString(5)
+                albumId =
+                    ContentUris.withAppendedId(Uri.parse("content://media/external/audio/albumart"), albumId.toLong())
+                        .toString()
 
                 if(duration.toInt() > 30000){
-                    val musicfile = MusicFiles(path,title,artist,album,duration)
+                    val musicfile = MusicFiles(
+                        path,
+                        title,
+                        artist,
+                        album,
+                        albumId,
+                        duration
+                    )
                     tempAudioList.add(musicfile)
                     if(!duplicate.contains(album)){
                         albums.add(musicfile)

@@ -1,15 +1,22 @@
-package com.viet.myaudioplayer
+package com.viet.myaudioplayer.adapter
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
+import android.net.Uri
+import android.os.ParcelFileDescriptor
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.viet.myaudioplayer.activity.AlbumDetails
+import com.viet.myaudioplayer.R
+import com.viet.myaudioplayer.model.MusicFiles
+import java.lang.Exception
 
 class AlbumAdapter(var mContext: Context, var mFile: MutableList<MusicFiles>): RecyclerView.Adapter<AlbumAdapter.ViewHolder>() {
 
@@ -29,9 +36,9 @@ class AlbumAdapter(var mContext: Context, var mFile: MutableList<MusicFiles>): R
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.albumName.text = mFile[position].album
-        var image: ByteArray? = getAlbumArt(mFile[position].path)
+        var image: Bitmap? = getAlbumArt(mFile[position].albumID)
         if(image != null){
-            holder.albumImage.setImageBitmap(BitmapFactory.decodeByteArray(image,0,image.size))
+            holder.albumImage.setImageBitmap(image)
         }
         else{
             holder.albumImage.setImageResource(R.drawable.music)
@@ -44,11 +51,14 @@ class AlbumAdapter(var mContext: Context, var mFile: MutableList<MusicFiles>): R
         }
     }
 
-    fun getAlbumArt(uri: String): ByteArray? {
-        var retriever: MediaMetadataRetriever = MediaMetadataRetriever()
-        retriever.setDataSource(uri)
-        var art: ByteArray? = retriever.embeddedPicture
-        retriever.release()
-        return art
+    private fun getAlbumArt(uri: String): Bitmap? {
+        return try {
+            val pfd: ParcelFileDescriptor? = mContext.contentResolver.openFileDescriptor(Uri.parse(uri), "r")
+            val fileDescriptor = pfd!!.fileDescriptor
+            BitmapFactory.decodeFileDescriptor(fileDescriptor)
+        }catch (e: Exception){
+            null
+        }
+
     }
 }

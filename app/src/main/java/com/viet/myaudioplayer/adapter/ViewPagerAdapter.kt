@@ -1,4 +1,4 @@
-package com.viet.myaudioplayer
+package com.viet.myaudioplayer.adapter
 
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager

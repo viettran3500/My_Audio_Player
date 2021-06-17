@@ -1,4 +1,4 @@
-package com.viet.myaudioplayer
+package com.viet.myaudioplayer.fragment
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -8,6 +8,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.viet.myaudioplayer.R
+import com.viet.myaudioplayer.activity.MainActivity
+import com.viet.myaudioplayer.adapter.MusicAdapter
 import kotlinx.android.synthetic.main.fragment_songs.view.*
 
 class SongsFragment : Fragment() {
@@ -23,7 +26,10 @@ class SongsFragment : Fragment() {
 
         view.recyclerView.setHasFixedSize(true)
         if(MainActivity.musicFiles.size >= 1){
-            musicAdapter = MusicAdapter(this.context!!, MainActivity.musicFiles)
+            musicAdapter = MusicAdapter(
+                this.context!!,
+                MainActivity.musicFiles
+            )
             view.recyclerView.adapter = musicAdapter
             view.recyclerView.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         }

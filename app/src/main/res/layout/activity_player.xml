@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:id="@+id/mContainer"
     android:background="@drawable/bg_main"
-    tools:context=".PlayerActivity">
+    tools:context=".activity.PlayerActivity">
     
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_marginTop="10dp"
