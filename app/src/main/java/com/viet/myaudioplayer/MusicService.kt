@@ -6,7 +6,6 @@ import android.app.Service
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Binder
@@ -19,12 +18,13 @@ import com.viet.myaudioplayer.activity.PlayerActivity
 import com.viet.myaudioplayer.model.MusicFiles
 import java.lang.Exception
 
-class MusicService: Service(),MediaPlayer.OnCompletionListener {
+class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
-    companion object{
+    companion object {
         var shuffleBoolean = false
         var repeatBoolean = 0
     }
+
     var mBinder: IBinder = MyBinder()
     var mediaPlayer: MediaPlayer? = null
     var musicFiles: MutableList<MusicFiles> = mutableListOf()
@@ -35,17 +35,17 @@ class MusicService: Service(),MediaPlayer.OnCompletionListener {
 
 
     override fun onCreate() {
-        mediaSessionCompat = MediaSessionCompat(baseContext,"My Audio")
+        mediaSessionCompat = MediaSessionCompat(baseContext, "My Audio")
         super.onCreate()
     }
 
     override fun onBind(p0: Intent?): IBinder? {
-        Log.e("aaa","aaa")
+        Log.e("aaa", "aaa")
         return mBinder
     }
 
-    inner class MyBinder: Binder() {
-        fun getService(): MusicService{
+    inner class MyBinder : Binder() {
+        fun getService(): MusicService {
             return this@MusicService
         }
     }
@@ -53,21 +53,21 @@ class MusicService: Service(),MediaPlayer.OnCompletionListener {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val myPosition = intent!!.getIntExtra("servicePosition", -1)
         val actionName: String? = intent.getStringExtra("ActionName")
-        if(myPosition!=-1){
+        if (myPosition != -1) {
             playMedia(myPosition)
         }
-        if(actionName!= null){
-            when(actionName){
-                "playPause"->{
+        if (actionName != null) {
+            when (actionName) {
+                "playPause" -> {
                     actionPlaying?.playPauseBtnClick()
                 }
-                "next"->{
+                "next" -> {
                     actionPlaying?.nextBtnClick()
                 }
-                "previous"->{
+                "previous" -> {
                     actionPlaying?.prevBtnClick()
                 }
-                "close"->{
+                "close" -> {
                     actionPlaying?.closeBtnClick()
                 }
             }
@@ -79,68 +79,68 @@ class MusicService: Service(),MediaPlayer.OnCompletionListener {
         musicFiles = PlayerActivity.listSongs
         position = startPosition
 
-        if(uri != Uri.parse(musicFiles[position].path)){
-            if(mediaPlayer!= null){
+        if (uri != Uri.parse(musicFiles[position].path)) {
+            if (mediaPlayer != null) {
                 mediaPlayer!!.stop()
                 mediaPlayer!!.release()
-                if(musicFiles.size!=0){
+                if (musicFiles.size != 0) {
                     createMediaPlayer(position)
                     mediaPlayer!!.start()
                 }
-            }else{
+            } else {
                 createMediaPlayer(position)
                 mediaPlayer!!.start()
             }
         }
     }
 
-    fun start(){
+    fun start() {
         mediaPlayer!!.start()
     }
 
-    fun pause(){
+    fun pause() {
         mediaPlayer!!.pause()
     }
 
     fun isPlaying() = mediaPlayer!!.isPlaying
 
-    fun stop(){
+    fun stop() {
         mediaPlayer!!.stop()
     }
 
-    fun release(){
+    fun release() {
         mediaPlayer!!.release()
     }
 
     fun getDuration() = mediaPlayer!!.duration
 
-    fun seekTo(position:Int){
+    fun seekTo(position: Int) {
         mediaPlayer!!.seekTo(position)
     }
 
     fun getCurrentPosition() = mediaPlayer!!.currentPosition
 
-    fun createMediaPlayer(positionIn: Int){
+    fun createMediaPlayer(positionIn: Int) {
         position = positionIn
         uri = Uri.parse(musicFiles[position].path)
-        Log.d("aaa","$position")
+        Log.d("aaa", "$position")
         mediaPlayer = MediaPlayer.create(baseContext, uri)
     }
 
-    fun onCompleted(){
+    fun onCompleted() {
         mediaPlayer!!.setOnCompletionListener(this)
     }
 
     override fun onCompletion(p0: MediaPlayer?) {
-        if(actionPlaying != null){
+        if (actionPlaying != null) {
             actionPlaying!!.nextBtnClick()
-            if(mediaPlayer!=null){
+            if (mediaPlayer != null) {
 
                 createMediaPlayer(position)
                 mediaPlayer!!.start()
                 showNotification(R.drawable.ic_pause)
 
-                if(position == 0 && repeatBoolean == 0){
+                if (position == 0 && repeatBoolean == 0) {
                     actionPlaying!!.playPauseBtnClick()
                 }
                 onCompleted()
@@ -148,36 +148,36 @@ class MusicService: Service(),MediaPlayer.OnCompletionListener {
         }
     }
 
-    fun setCallBack(actionPlaying: ActionPlaying){
+    fun setCallBack(actionPlaying: ActionPlaying) {
         this.actionPlaying = actionPlaying
     }
 
     fun showNotification(playPauseBtn: Int) {
-        var intent: Intent = Intent(this, PlayerActivity::class.java)
-        var contentIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
+        //val intent = Intent(this, PlayerActivity::class.java)
+        //var contentIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
 
-        var prevIntent: Intent = Intent(this, NotificationReceiver::class.java).setAction(
+        val prevIntent: Intent = Intent(this, NotificationReceiver::class.java).setAction(
             ApplicationClass.ACTION_PREVIOUS
         )
-        var prevPending: PendingIntent =
+        val prevPending: PendingIntent =
             PendingIntent.getBroadcast(this, 0, prevIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        var pauseIntent: Intent = Intent(this, NotificationReceiver::class.java).setAction(
+        val pauseIntent: Intent = Intent(this, NotificationReceiver::class.java).setAction(
             ApplicationClass.ACTION_PLAY
         )
-        var pausePending: PendingIntent =
+        val pausePending: PendingIntent =
             PendingIntent.getBroadcast(this, 0, pauseIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        var nextIntent: Intent = Intent(this, NotificationReceiver::class.java).setAction(
+        val nextIntent: Intent = Intent(this, NotificationReceiver::class.java).setAction(
             ApplicationClass.ACTION_NEXT
         )
-        var nextPending: PendingIntent =
+        val nextPending: PendingIntent =
             PendingIntent.getBroadcast(this, 0, nextIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        var closeIntent: Intent = Intent(this, NotificationReceiver::class.java).setAction(
+        val closeIntent: Intent = Intent(this, NotificationReceiver::class.java).setAction(
             ApplicationClass.ACTION_CLOSE
         )
-        var closePending: PendingIntent =
+        val closePending: PendingIntent =
             PendingIntent.getBroadcast(this, 0, closeIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
         var thumb: Bitmap? = getAlbumArt(musicFiles[position].albumID)
@@ -193,8 +193,10 @@ class MusicService: Service(),MediaPlayer.OnCompletionListener {
                 .addAction(playPauseBtn, "Pause", pausePending)
                 .addAction(R.drawable.ic_skip_next, "Next", nextPending)
                 .addAction(R.drawable.ic_close, "Close", closePending)
-                .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
-                    .setMediaSession(mediaSessionCompat.sessionToken))
+                .setStyle(
+                    androidx.media.app.NotificationCompat.MediaStyle()
+                        .setMediaSession(mediaSessionCompat.sessionToken)
+                )
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setSound(null)
                 .setOnlyAlertOnce(true)
@@ -207,10 +209,11 @@ class MusicService: Service(),MediaPlayer.OnCompletionListener {
 
     private fun getAlbumArt(uri: String): Bitmap? {
         return try {
-            val pfd: ParcelFileDescriptor? = this.contentResolver.openFileDescriptor(Uri.parse(uri), "r")
+            val pfd: ParcelFileDescriptor? =
+                this.contentResolver.openFileDescriptor(Uri.parse(uri), "r")
             val fileDescriptor = pfd!!.fileDescriptor
             BitmapFactory.decodeFileDescriptor(fileDescriptor)
-        }catch (e: Exception){
+        } catch (e: Exception) {
             null
         }
 
@@ -218,15 +221,15 @@ class MusicService: Service(),MediaPlayer.OnCompletionListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d("aaa","de")
-        if(mediaPlayer!=null){
+        Log.d("aaa", "de")
+        if (mediaPlayer != null) {
             mediaPlayer!!.release()
             mediaPlayer = null
         }
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-        Log.d("aaa","un")
+        Log.d("aaa", "un")
         return super.onUnbind(intent)
     }
 }

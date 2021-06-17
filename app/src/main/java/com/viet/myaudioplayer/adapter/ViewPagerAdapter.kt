@@ -5,7 +5,8 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 
 
-class ViewPagerAdapter(fm: FragmentManager): FragmentPagerAdapter(fm, FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+class ViewPagerAdapter(fm: FragmentManager) :
+    FragmentPagerAdapter(fm, FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
     private var fragments: MutableList<Fragment> = mutableListOf()
     private var titles: MutableList<String> = mutableListOf()
@@ -18,7 +19,7 @@ class ViewPagerAdapter(fm: FragmentManager): FragmentPagerAdapter(fm, FragmentPa
         return fragments.size
     }
 
-    fun addFragments(fragment: Fragment, title: String){
+    fun addFragments(fragment: Fragment, title: String) {
         fragments.add(fragment)
         titles.add(title)
     }

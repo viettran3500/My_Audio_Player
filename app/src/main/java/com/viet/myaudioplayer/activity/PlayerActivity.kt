@@ -89,16 +89,16 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         }
 
         btnRepeat.setOnClickListener {
-            when(MusicService.repeatBoolean){
-                2->{
+            when (MusicService.repeatBoolean) {
+                2 -> {
                     MusicService.repeatBoolean = 0
                     btnRepeat.setImageResource(R.drawable.ic_repeat_off)
                 }
-                1-> {
+                1 -> {
                     MusicService.repeatBoolean = 2
                     btnRepeat.setImageResource(R.drawable.ic_repeat_on)
                 }
-                0->{
+                0 -> {
                     MusicService.repeatBoolean = 1
                     btnRepeat.setImageResource(R.drawable.ic_repeat_1)
                 }
@@ -106,20 +106,20 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         }
     }
 
-    fun checkShuffleRepeat(){
-        if(MusicService.shuffleBoolean)
+    private fun checkShuffleRepeat() {
+        if (MusicService.shuffleBoolean)
             btnShuffle.setImageResource(R.drawable.ic_shuffle_on)
         else
             btnShuffle.setImageResource(R.drawable.ic_shuffle_off)
 
-        when(MusicService.repeatBoolean){
-            2->{
+        when (MusicService.repeatBoolean) {
+            2 -> {
                 btnRepeat.setImageResource(R.drawable.ic_repeat_on)
             }
-            1-> {
+            1 -> {
                 btnRepeat.setImageResource(R.drawable.ic_repeat_1)
             }
-            0->{
+            0 -> {
                 btnRepeat.setImageResource(R.drawable.ic_repeat_off)
             }
         }
@@ -127,7 +127,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     override fun onResume() {
 
-        val intent: Intent = Intent(this, MusicService::class.java)
+        val intent = Intent(this, MusicService::class.java)
         bindService(intent, this, Context.BIND_AUTO_CREATE)
         playThreadBtn()
         prevThreadBtn()
@@ -178,7 +178,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         } else {
             musicService!!.stop()
             musicService!!.release()
-            if (MusicService.shuffleBoolean && MusicService.repeatBoolean ==1) {
+            if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
                 position = getRandom(listSongs.size - 1)
             } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                 position = if ((position - 1) < 0) listSongs.size - 1 else position - 1
@@ -260,7 +260,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     }
 
     private fun getRandom(i: Int): Int {
-        val random: Random = Random()
+        val random = Random()
         var posi = random.nextInt(i + 1)
         while (posi == position) {
             posi = random.nextInt(i + 1)
@@ -297,16 +297,16 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     }
 
     private fun formattedtime(mCurrentPosition: Int): String {
-        var totalOut = ""
-        var totalNew = ""
+        val totalOut: String
+        val totalNew: String
         val seconds: String = (mCurrentPosition % 60).toString()
         val minutes: String = (mCurrentPosition / 60).toString()
         totalOut = "$minutes:$seconds"
         totalNew = "$minutes:0$seconds"
-        if (seconds.length == 1) {
-            return totalNew
+        return if (seconds.length == 1) {
+            totalNew
         } else {
-            return totalOut
+            totalOut
         }
     }
 
@@ -326,12 +326,12 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         startService(intent)
     }
 
-    fun metaData(uri: Uri) {
-        var retriever: MediaMetadataRetriever = MediaMetadataRetriever()
-        retriever.setDataSource(this,uri)
-        var durationTotal: Int = listSongs[position].duration.toInt() / 1000
+    private fun metaData(uri: Uri) {
+        val retriever = MediaMetadataRetriever()
+        retriever.setDataSource(this, uri)
+        val durationTotal: Int = listSongs[position].duration.toInt() / 1000
         tvDurationTotal.text = formattedtime(durationTotal)
-        var art: ByteArray? = retriever.embeddedPicture
+        val art: ByteArray? = retriever.embeddedPicture
         if (art != null) {
             imgCoverArt.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.size))
         } else {

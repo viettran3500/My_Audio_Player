@@ -22,16 +22,17 @@ class SongsFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        var view: View = inflater.inflate(R.layout.fragment_songs, container, false)
+        val view: View = inflater.inflate(R.layout.fragment_songs, container, false)
 
         view.recyclerView.setHasFixedSize(true)
-        if(MainActivity.musicFiles.size >= 1){
+        if (MainActivity.musicFiles.size >= 1) {
             musicAdapter = MusicAdapter(
                 this.context!!,
                 MainActivity.musicFiles
             )
             view.recyclerView.adapter = musicAdapter
-            view.recyclerView.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+            view.recyclerView.layoutManager =
+                LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         }
 
         return view

@@ -21,9 +21,9 @@ class AlbumFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        var view: View = inflater.inflate(R.layout.fragment_album, container, false)
+        val view: View = inflater.inflate(R.layout.fragment_album, container, false)
         view.recyclerView.setHasFixedSize(true)
-        if(MainActivity.albums.size >= 1){
+        if (MainActivity.albums.size >= 1) {
             albumAdapter = AlbumAdapter(
                 this.context!!,
                 MainActivity.albums
