@@ -15,6 +15,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.tabs.TabLayoutMediator
 import com.viet.myaudioplayer.fragment.AlbumFragment
 import com.viet.myaudioplayer.R
 import com.viet.myaudioplayer.fragment.SongsFragment
@@ -84,13 +85,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun initViewPager() {
         viewPagerAdapter =
-            ViewPagerAdapter(
-                supportFragmentManager
-            )
+            ViewPagerAdapter(this)
         viewPagerAdapter.addFragments(SongsFragment(), "Songs")
         viewPagerAdapter.addFragments(AlbumFragment(), "Albums")
         viewPager.adapter = viewPagerAdapter
-        tabLayout.setupWithViewPager(viewPager)
+        TabLayoutMediator(tabLayout, viewPager){tab, position ->
+            tab.text = viewPagerAdapter.titles[position]
+        }.attach()
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
