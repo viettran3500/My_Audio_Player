@@ -136,9 +136,9 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     }
 
     override fun onPause() {
-        super.onPause()
         handler.removeCallbacks(runnable)
         unbindService(this)
+        super.onPause()
     }
 
     private fun prevThreadBtn() {
@@ -251,6 +251,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     }
 
     override fun closeBtnClick() {
+        handler.removeCallbacks(runnable)
         musicService!!.stopSelf()
         finish()
     }

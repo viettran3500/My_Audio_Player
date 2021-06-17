@@ -196,6 +196,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
                 .setStyle(
                     androidx.media.app.NotificationCompat.MediaStyle()
                         .setMediaSession(mediaSessionCompat.sessionToken)
+                        .setShowActionsInCompactView(3)
                 )
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setSound(null)
