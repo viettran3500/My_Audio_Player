@@ -8,21 +8,21 @@
     tools:context=".activity.MainActivity">
 
     <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/colorPrimaryDark"
-        android:id="@+id/tabLayout"
+        app:tabIndicator="@drawable/tab_indicator"
+        app:tabIndicatorColor="#F64B4B"
         app:tabIndicatorFullWidth="true"
         app:tabIndicatorGravity="center"
-        app:tabTextColor="#FFFFFF"
         app:tabIndicatorHeight="40dp"
-        app:tabIndicatorColor="#F64B4B"
-        app:tabIndicator="@drawable/tab_indicator"/>
+        app:tabTextColor="#FFFFFF" />
 
 
     <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/viewPager"/>
+        android:layout_height="match_parent" />
 
 </LinearLayout>
