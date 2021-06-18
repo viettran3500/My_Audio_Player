@@ -1,5 +1,6 @@
 package com.viet.myaudioplayer.activity
 
+import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -12,6 +13,8 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.IBinder
+import android.view.MotionEvent
+import android.view.View
 import android.widget.SeekBar
 import com.viet.myaudioplayer.ActionPlaying
 import com.viet.myaudioplayer.MusicService
@@ -26,18 +29,21 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         var listSongs: MutableList<MusicFiles> = mutableListOf()
     }
 
-    var position = -1
-    lateinit var uri: Uri
+    private var position = -1
+    private lateinit var uri: Uri
 
-    var thread: HandlerThread = HandlerThread("Thread")
-    lateinit var playThread: Thread
-    lateinit var prevThread: Thread
-    lateinit var nextThread: Thread
-    lateinit var handler: Handler
-    lateinit var runnable: Runnable
+    private var thread: HandlerThread = HandlerThread("Thread")
+    private lateinit var playThread: Thread
+    private lateinit var prevThread: Thread
+    private lateinit var nextThread: Thread
+    private lateinit var handler: Handler
+    private lateinit var runnable: Runnable
+    private lateinit var runnablePlus: Runnable
+    private lateinit var runnableMinus: Runnable
 
     var musicService: MusicService? = null
 
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
@@ -58,6 +64,48 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             handler.postDelayed(runnable, 1000)
         }
         handler.post(runnable)
+
+        runnablePlus = Runnable {
+            seekBar.progress = seekBar.progress + 1
+            musicService!!.seekTo(seekBar.progress * 1000)
+            this.runOnUiThread {
+                tvDurationPlayer.text = formattedtime(seekBar.progress)
+            }
+            handler.postDelayed(runnablePlus,100)
+        }
+        btnFastForward.setOnTouchListener { p0, motionEvent ->
+            if (motionEvent != null) {
+                if (motionEvent.action == MotionEvent.ACTION_DOWN) {
+                    handler.postDelayed(runnablePlus, 1000)
+                }
+                if (motionEvent.action == MotionEvent.ACTION_UP) {
+                    handler.removeCallbacks(runnablePlus)
+                }
+            }
+            true
+        }
+
+        runnableMinus= Runnable {
+            seekBar.progress = seekBar.progress - 1
+            musicService!!.seekTo(seekBar.progress * 1000)
+            this.runOnUiThread {
+                tvDurationPlayer.text = formattedtime(seekBar.progress)
+            }
+            handler.postDelayed(runnableMinus,100)
+        }
+
+        btnFastRewind.setOnTouchListener { p0, motionEvent ->
+            if (motionEvent != null) {
+                if (motionEvent.action == MotionEvent.ACTION_DOWN) {
+                    handler.postDelayed(runnableMinus, 1000)
+                }
+                if (motionEvent.action == MotionEvent.ACTION_UP) {
+                    handler.removeCallbacks(runnableMinus)
+                }
+            }
+            true
+        }
+
         seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (musicService != null && fromUser) {
@@ -136,6 +184,8 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     }
 
     override fun onPause() {
+        handler.removeCallbacks(runnablePlus)
+        handler.removeCallbacks(runnableMinus)
         handler.removeCallbacks(runnable)
         unbindService(this)
         super.onPause()
@@ -154,6 +204,8 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     }
 
     override fun prevBtnClick() {
+        handler.removeCallbacks(runnablePlus)
+        handler.removeCallbacks(runnableMinus)
         handler.removeCallbacks(runnable)
         if (musicService!!.isPlaying()) {
             musicService!!.stop()
@@ -209,6 +261,8 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     }
 
     override fun nextBtnClick() {
+        handler.removeCallbacks(runnablePlus)
+        handler.removeCallbacks(runnableMinus)
         handler.removeCallbacks(runnable)
         if (musicService!!.isPlaying()) {
             musicService!!.stop()
@@ -251,6 +305,8 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     }
 
     override fun closeBtnClick() {
+        handler.removeCallbacks(runnablePlus)
+        handler.removeCallbacks(runnableMinus)
         handler.removeCallbacks(runnable)
         musicService!!.stopSelf()
         finish()
