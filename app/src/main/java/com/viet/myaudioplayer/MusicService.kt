@@ -6,6 +6,7 @@ import android.app.Service
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Binder
@@ -180,7 +181,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         val closePending: PendingIntent =
             PendingIntent.getBroadcast(this, 0, closeIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        var thumb: Bitmap? = getAlbumArt(musicFiles[position].albumID)
+        var thumb: Bitmap? = getAlbumArt(musicFiles[position].path)
         if (thumb == null) {
             thumb = BitmapFactory.decodeResource(resources, R.drawable.music)
         }
@@ -209,12 +210,12 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     private fun getAlbumArt(uri: String): Bitmap? {
-        return try {
-            val pfd: ParcelFileDescriptor? =
-                this.contentResolver.openFileDescriptor(Uri.parse(uri), "r")
-            val fileDescriptor = pfd!!.fileDescriptor
-            BitmapFactory.decodeFileDescriptor(fileDescriptor)
-        } catch (e: Exception) {
+        val retriever = MediaMetadataRetriever()
+        retriever.setDataSource(this, Uri.parse(uri))
+        val art: ByteArray? = retriever.embeddedPicture
+        return if (art != null) {
+            BitmapFactory.decodeByteArray(art, 0, art.size)
+        } else {
             null
         }
 

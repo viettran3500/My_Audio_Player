@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import android.view.LayoutInflater
@@ -36,7 +37,7 @@ class AlbumAdapter(private var mContext: Context, private var mFile: MutableList
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         holder.albumName.text = mFile[position].album
-        val image: Bitmap? = getAlbumArt(mFile[position].albumID)
+        val image: Bitmap? = getAlbumArt(mFile[position].path)
         if (image != null) {
             holder.albumImage.setImageBitmap(image)
         } else {
@@ -51,12 +52,12 @@ class AlbumAdapter(private var mContext: Context, private var mFile: MutableList
     }
 
     private fun getAlbumArt(uri: String): Bitmap? {
-        return try {
-            val pfd: ParcelFileDescriptor? =
-                mContext.contentResolver.openFileDescriptor(Uri.parse(uri), "r")
-            val fileDescriptor = pfd!!.fileDescriptor
-            BitmapFactory.decodeFileDescriptor(fileDescriptor)
-        } catch (e: Exception) {
+        val retriever = MediaMetadataRetriever()
+        retriever.setDataSource(mContext, Uri.parse(uri))
+        val art: ByteArray? = retriever.embeddedPicture
+        return if (art != null) {
+            BitmapFactory.decodeByteArray(art, 0, art.size)
+        } else {
             null
         }
 

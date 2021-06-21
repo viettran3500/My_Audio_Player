@@ -2,6 +2,7 @@ package com.viet.myaudioplayer.activity
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -12,6 +13,7 @@ import com.viet.myaudioplayer.R
 import com.viet.myaudioplayer.adapter.AlbumDetailAdapter
 import com.viet.myaudioplayer.model.MusicFiles
 import kotlinx.android.synthetic.main.activity_album_details.*
+import kotlinx.android.synthetic.main.activity_player.*
 import java.lang.Exception
 
 class AlbumDetails : AppCompatActivity() {
@@ -36,7 +38,7 @@ class AlbumDetails : AppCompatActivity() {
             }
         }
 
-        val image: Bitmap? = getAlbumArt(albumSongs[0].albumID)
+        val image: Bitmap? = getAlbumArt(albumSongs[0].path)
         if (image != null) {
             imgAlbumPhoto.setImageBitmap(image)
         } else {
@@ -59,12 +61,12 @@ class AlbumDetails : AppCompatActivity() {
     }
 
     private fun getAlbumArt(uri: String): Bitmap? {
-        return try {
-            val pfd: ParcelFileDescriptor? =
-                this.contentResolver.openFileDescriptor(Uri.parse(uri), "r")
-            val fileDescriptor = pfd!!.fileDescriptor
-            BitmapFactory.decodeFileDescriptor(fileDescriptor)
-        } catch (e: Exception) {
+        val retriever = MediaMetadataRetriever()
+        retriever.setDataSource(this, Uri.parse(uri))
+        val art: ByteArray? = retriever.embeddedPicture
+        return if (art != null) {
+            BitmapFactory.decodeByteArray(art, 0, art.size)
+        } else {
             null
         }
 
