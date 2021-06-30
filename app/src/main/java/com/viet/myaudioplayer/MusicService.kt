@@ -17,6 +17,7 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.viet.myaudioplayer.activity.PlayerActivity
 import com.viet.myaudioplayer.model.MusicFiles
+import com.viet.myaudioplayer.model.SongInfo
 import java.lang.Exception
 
 class MusicService : Service(), MediaPlayer.OnCompletionListener {
@@ -24,11 +25,12 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     companion object {
         var shuffleBoolean = false
         var repeatBoolean = 0
+        var isOnline = false
     }
-
     var mBinder: IBinder = MyBinder()
     var mediaPlayer: MediaPlayer? = null
     var musicFiles: MutableList<MusicFiles> = mutableListOf()
+    var musicOnlineFiles: MutableList<SongInfo> = mutableListOf()
     var uri: Uri? = null
     var position: Int = -1
     var actionPlaying: ActionPlaying? = null
@@ -77,26 +79,70 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     private fun playMedia(startPosition: Int) {
-        musicFiles = PlayerActivity.listSongs
-        position = startPosition
+        if(isOnline){
 
-        if (uri != Uri.parse(musicFiles[position].path)) {
-            if (mediaPlayer != null) {
-                mediaPlayer!!.stop()
-                mediaPlayer!!.release()
-                if (musicFiles.size != 0) {
+            musicOnlineFiles = PlayerActivity.listSongsOnline
+            position = startPosition
+
+            if (uri != Uri.parse(musicOnlineFiles[position].source)) {
+                if (mediaPlayer != null) {
+                    mediaPlayer!!.stop()
+                    mediaPlayer!!.release()
+                    if (musicOnlineFiles.size != 0) {
+                        createMediaPlayer(position)
+                        mediaPlayer!!.start()
+                    }
+                } else {
                     createMediaPlayer(position)
                     mediaPlayer!!.start()
                 }
-            } else {
-                createMediaPlayer(position)
-                mediaPlayer!!.start()
+            }
+        }else{
+            musicFiles = PlayerActivity.listSongs
+            position = startPosition
+
+            if (uri != Uri.parse(musicFiles[position].path)) {
+                if (mediaPlayer != null) {
+                    mediaPlayer!!.stop()
+                    mediaPlayer!!.release()
+                    if (musicFiles.size != 0) {
+                        createMediaPlayer(position)
+                        mediaPlayer!!.start()
+                    }
+                } else {
+                    createMediaPlayer(position)
+                    mediaPlayer!!.start()
+                }
             }
         }
     }
 
+    fun createMediaPlayer(positionIn: Int) {
+        if(isOnline){
+            position = positionIn
+            uri = Uri.parse(musicOnlineFiles[position].source)
+            mediaPlayer = MediaPlayer()
+            mediaPlayer!!.setDataSource(musicOnlineFiles[position].source)
+            mediaPlayer!!.prepareAsync()
+            mediaPlayer!!.setOnPreparedListener {
+                it.start()
+            }
+
+        }else{
+            position = positionIn
+            uri = Uri.parse(musicFiles[position].path)
+            Log.d("aaa", "$position")
+            mediaPlayer = MediaPlayer.create(baseContext, uri)
+        }
+    }
+
     fun start() {
-        mediaPlayer!!.start()
+        if(isOnline){
+
+        }else{
+            mediaPlayer!!.start()
+        }
+
     }
 
     fun pause() {
@@ -113,7 +159,14 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         mediaPlayer!!.release()
     }
 
-    fun getDuration() = mediaPlayer!!.duration
+    fun getDuration(): Int{
+        return if(isOnline){
+            musicOnlineFiles[position].duration * 1000
+        }else{
+            mediaPlayer!!.duration
+        }
+
+    }
 
     fun seekTo(position: Int) {
         mediaPlayer!!.seekTo(position)
@@ -121,32 +174,25 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     fun getCurrentPosition() = mediaPlayer!!.currentPosition
 
-    fun createMediaPlayer(positionIn: Int) {
-        position = positionIn
-        uri = Uri.parse(musicFiles[position].path)
-        Log.d("aaa", "$position")
-        mediaPlayer = MediaPlayer.create(baseContext, uri)
-    }
-
     fun onCompleted() {
-        mediaPlayer!!.setOnCompletionListener(this)
+        //mediaPlayer!!.setOnCompletionListener(this)
     }
 
     override fun onCompletion(p0: MediaPlayer?) {
-        if (actionPlaying != null) {
-            actionPlaying!!.nextBtnClick()
-            if (mediaPlayer != null) {
-
-                createMediaPlayer(position)
-                mediaPlayer!!.start()
-                showNotification(R.drawable.ic_pause)
-
-                if (position == 0 && repeatBoolean == 0) {
-                    actionPlaying!!.playPauseBtnClick()
-                }
-                onCompleted()
-            }
-        }
+//        if (actionPlaying != null) {
+//            actionPlaying!!.nextBtnClick()
+//            if (mediaPlayer != null) {
+//
+//                createMediaPlayer(position)
+//                mediaPlayer!!.start()
+//                showNotification(R.drawable.ic_pause)
+//
+//                if (position == 0 && repeatBoolean == 0) {
+//                    actionPlaying!!.playPauseBtnClick()
+//                }
+//                onCompleted()
+//            }
+//        }
     }
 
     fun setCallBack(actionPlaying: ActionPlaying) {
@@ -154,8 +200,6 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     fun showNotification(playPauseBtn: Int) {
-        //val intent = Intent(this, PlayerActivity::class.java)
-        //var contentIntent: PendingIntent = PendingIntent.getActivity(this, 0, intent, 0)
 
         val prevIntent: Intent = Intent(this, NotificationReceiver::class.java).setAction(
             ApplicationClass.ACTION_PREVIOUS
@@ -181,31 +225,59 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         val closePending: PendingIntent =
             PendingIntent.getBroadcast(this, 0, closeIntent, PendingIntent.FLAG_UPDATE_CURRENT)
 
-        var thumb: Bitmap? = getAlbumArt(musicFiles[position].path)
-        if (thumb == null) {
-            thumb = BitmapFactory.decodeResource(resources, R.drawable.music)
-        }
-        val notification: Notification =
-            NotificationCompat.Builder(this, ApplicationClass.CHANNEL_ID_2)
-                .setSmallIcon(playPauseBtn).setLargeIcon(thumb).setContentTitle(
-                    musicFiles[position].title
-                ).setContentText(musicFiles[position].artist)
-                .addAction(R.drawable.ic_skip_previous, "Previous", prevPending)
-                .addAction(playPauseBtn, "Pause", pausePending)
-                .addAction(R.drawable.ic_skip_next, "Next", nextPending)
-                .addAction(R.drawable.ic_close, "Close", closePending)
-                .setStyle(
-                    androidx.media.app.NotificationCompat.MediaStyle()
-                        .setMediaSession(mediaSessionCompat.sessionToken)
-                        .setShowActionsInCompactView(3)
-                )
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setSound(null)
-                .setOnlyAlertOnce(true)
-                .build()
+        var notification: Notification? = null
 
-//        var notificationManager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-//        notificationManager.notify(0, notification)
+        if(isOnline){
+//            var thumb: Bitmap? = getAlbumArt(musicFiles[position].path)
+//            if (thumb == null) {
+//                thumb = BitmapFactory.decodeResource(resources, R.drawable.music)
+//            }
+            var thumb: Bitmap? = BitmapFactory.decodeResource(resources, R.drawable.music)
+            notification =
+                NotificationCompat.Builder(this, ApplicationClass.CHANNEL_ID_2)
+                    .setSmallIcon(playPauseBtn).setLargeIcon(thumb).setContentTitle(
+                        musicOnlineFiles[position].title
+                    ).setContentText(musicOnlineFiles[position].artistsNames)
+                    .addAction(R.drawable.ic_skip_previous, "Previous", prevPending)
+                    .addAction(playPauseBtn, "Pause", pausePending)
+                    .addAction(R.drawable.ic_skip_next, "Next", nextPending)
+                    .addAction(R.drawable.ic_close, "Close", closePending)
+                    .setStyle(
+                        androidx.media.app.NotificationCompat.MediaStyle()
+                            .setMediaSession(mediaSessionCompat.sessionToken)
+                            .setShowActionsInCompactView(3)
+                    )
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setSound(null)
+                    .setOnlyAlertOnce(true)
+                    .build()
+        }else{
+
+            var thumb: Bitmap? = getAlbumArt(musicFiles[position].path)
+            if (thumb == null) {
+                thumb = BitmapFactory.decodeResource(resources, R.drawable.music)
+            }
+
+            notification =
+                NotificationCompat.Builder(this, ApplicationClass.CHANNEL_ID_2)
+                    .setSmallIcon(playPauseBtn).setLargeIcon(thumb).setContentTitle(
+                        musicFiles[position].title
+                    ).setContentText(musicFiles[position].artist)
+                    .addAction(R.drawable.ic_skip_previous, "Previous", prevPending)
+                    .addAction(playPauseBtn, "Pause", pausePending)
+                    .addAction(R.drawable.ic_skip_next, "Next", nextPending)
+                    .addAction(R.drawable.ic_close, "Close", closePending)
+                    .setStyle(
+                        androidx.media.app.NotificationCompat.MediaStyle()
+                            .setMediaSession(mediaSessionCompat.sessionToken)
+                            .setShowActionsInCompactView(3)
+                    )
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setSound(null)
+                    .setOnlyAlertOnce(true)
+                    .build()
+
+        }
         startForeground(1, notification)
     }
 

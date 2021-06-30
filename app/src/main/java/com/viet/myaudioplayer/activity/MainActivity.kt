@@ -4,6 +4,7 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ContentUris
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
@@ -11,35 +12,60 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.tabs.TabLayoutMediator
-import com.viet.myaudioplayer.fragment.AlbumFragment
 import com.viet.myaudioplayer.R
-import com.viet.myaudioplayer.fragment.SongsFragment
+import com.viet.myaudioplayer.viewmodel.SongViewModel
 import com.viet.myaudioplayer.adapter.ViewPagerAdapter
+import com.viet.myaudioplayer.fragment.*
 import com.viet.myaudioplayer.model.MusicFiles
+import com.viet.myaudioplayer.model.SongInfo
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
     val REQUEST_CODE = 1
     lateinit var viewPagerAdapter: ViewPagerAdapter
+    val topSongsFragment: TopSongsFragment = TopSongsFragment()
+    val searchFragment: SearchFragment = SearchFragment()
+    val favoriteSongFragment: FavoriteSongFragment = FavoriteSongFragment()
 
     companion object {
         var musicFiles: MutableList<MusicFiles> = mutableListOf()
         var albums: MutableList<MusicFiles> = mutableListOf()
+        var listMusicTop: MutableList<SongInfo> = mutableListOf()
+        var listMusicSearch: MutableList<SongInfo> = mutableListOf()
+        var listMusicFavorite: MutableList<SongInfo> = mutableListOf()
     }
 
+    private val songViewModel: SongViewModel by lazy {
+        ViewModelProvider(
+            this,
+            SongViewModel.SongViewModelFactory(this.application)
+        )[SongViewModel::class.java]
+    }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        setSupportActionBar(toolbar)
+        //supportActionBar?.setDisplayShowHomeEnabled(true)
+
         checkkPermission()
+
+        songViewModel.getAllSong().observe(this, Observer {
+            listMusicFavorite = it as MutableList<SongInfo>
+        })
     }
 
     @SuppressLint("ShowToast")
@@ -57,7 +83,6 @@ class MainActivity : AppCompatActivity() {
             )
         } else {
             Toast.makeText(this@MainActivity, "Permission Granted", Toast.LENGTH_SHORT)
-            musicFiles = getAllAudio(this)
             initViewPager()
         }
     }
@@ -71,7 +96,6 @@ class MainActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                musicFiles = getAllAudio(this)
                 initViewPager()
             } else {
                 ActivityCompat.requestPermissions(
@@ -86,66 +110,27 @@ class MainActivity : AppCompatActivity() {
     private fun initViewPager() {
         viewPagerAdapter =
             ViewPagerAdapter(this)
-        viewPagerAdapter.addFragments(SongsFragment(), "Songs")
-        viewPagerAdapter.addFragments(AlbumFragment(), "Albums")
+        viewPagerAdapter.addFragments(TopSongsFragment(), "Top Hits")
+        viewPagerAdapter.addFragments(searchFragment,"Search Song")
+        viewPagerAdapter.addFragments(favoriteSongFragment,"Favorite Song")
         viewPager.adapter = viewPagerAdapter
         TabLayoutMediator(tabLayout, viewPager){tab, position ->
             tab.text = viewPagerAdapter.titles[position]
         }.attach()
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
-    fun getAllAudio(context: Context): MutableList<MusicFiles> {
-        val duplicate: MutableList<String> = mutableListOf()
-        val tempAudioList: MutableList<MusicFiles> = mutableListOf()
+    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+        val inflater : MenuInflater = menuInflater
+        inflater.inflate(R.menu.menu_main, menu);
+        return super.onCreateOptionsMenu(menu)
+    }
 
-        val uri: Uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-
-        val projection = arrayOf(
-            MediaStore.Audio.Media.ALBUM,
-            MediaStore.Audio.Media.TITLE,
-            MediaStore.Audio.Media.DURATION,
-            MediaStore.Audio.Media._ID,
-            MediaStore.Audio.Media.ARTIST,
-            MediaStore.Audio.Media.ALBUM_ID
-        )
-
-        val cursor: Cursor? = context.contentResolver.query(uri, projection, null, null, null)
-
-        if (cursor != null) {
-            while (cursor.moveToNext()) {
-                val album = cursor.getString(0)
-                val title = cursor.getString(1)
-                val duration = cursor.getString(2)
-                var path = cursor.getString(3)
-                path = ContentUris.withAppendedId(uri, path.toLong()).toString()
-                val artist = cursor.getString(4)
-                var albumId = cursor.getString(5)
-                albumId =
-                    ContentUris.withAppendedId(
-                        Uri.parse("content://media/external/audio/albumart"),
-                        albumId.toLong()
-                    )
-                        .toString()
-
-                if (duration.toInt() > 30000) {
-                    val musicfile = MusicFiles(
-                        path,
-                        title,
-                        artist,
-                        album,
-                        albumId,
-                        duration
-                    )
-                    tempAudioList.add(musicfile)
-                    if (!duplicate.contains(album)) {
-                        albums.add(musicfile)
-                        duplicate.add(album)
-                    }
-                }
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        when(item.itemId){
+            R.id.ofline-> {
+                startActivity(Intent(this, OfflineActivity::class.java))
             }
-            cursor.close()
         }
-        return tempAudioList
+        return super.onOptionsItemSelected(item)
     }
 }

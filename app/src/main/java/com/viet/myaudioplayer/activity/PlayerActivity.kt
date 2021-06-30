@@ -16,21 +16,36 @@ import android.os.IBinder
 import android.view.MotionEvent
 import android.view.View
 import android.widget.SeekBar
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.viet.myaudioplayer.ActionPlaying
 import com.viet.myaudioplayer.MusicService
 import com.viet.myaudioplayer.R
+import com.viet.myaudioplayer.adapter.ListSongRelatedAdapter
+import com.viet.myaudioplayer.api.ApiService
 import com.viet.myaudioplayer.model.MusicFiles
+import com.viet.myaudioplayer.model.SongInfo
+import com.viet.myaudioplayer.model.infomusic.DataInfo
+import com.viet.myaudioplayer.model.recommend.ItemRecommend
+import com.viet.myaudioplayer.model.top.ItemSong
 import kotlinx.android.synthetic.main.activity_player.*
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 import java.util.*
 
 class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     companion object {
         var listSongs: MutableList<MusicFiles> = mutableListOf()
+        var listSongsOnline: MutableList<SongInfo> = mutableListOf()
+        var listSongRelated: MutableList<SongInfo> = mutableListOf()
     }
 
+    var list: MutableList<ItemSong> = mutableListOf()
+
     private var position = -1
-    private lateinit var uri: Uri
+    //private lateinit var uri: Uri
 
     private var thread: HandlerThread = HandlerThread("Thread")
     private lateinit var playThread: Thread
@@ -43,10 +58,16 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
 
     var musicService: MusicService? = null
 
+    lateinit var listSongRelatedAdapter: ListSongRelatedAdapter
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
+
+        listSongRelatedAdapter = ListSongRelatedAdapter(this)
+        recyclerViewRelated.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
+        recyclerViewRelated.adapter = listSongRelatedAdapter
 
         thread.start()
         handler = Handler(thread.looper)
@@ -171,6 +192,13 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
                 btnRepeat.setImageResource(R.drawable.ic_repeat_off)
             }
         }
+
+        if(musicService != null) {
+            if (musicService!!.isPlaying())
+                btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
+            else
+                btnPlayPause.setBackgroundResource(R.drawable.ic_play)
+        }
     }
 
     override fun onResume() {
@@ -210,17 +238,29 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         if (musicService!!.isPlaying()) {
             musicService!!.stop()
             musicService!!.release()
-            if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
-                position = getRandom(listSongs.size - 1)
-            } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
-                position = if ((position - 1) < 0) listSongs.size - 1 else position - 1
+            if(MusicService.isOnline){
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                    position = getRandom(listSongsOnline.size - 1)
+                } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
+                    position = if ((position - 1) < 0) listSongsOnline.size - 1 else position - 1
+                }
+                //uri = Uri.parse(listSongs[position].path)
+                metaData()
+                tvSongName.text = listSongsOnline[position].title
+                tvSongArtist.text = listSongsOnline[position].artistsNames
+            }else{
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                    position = getRandom(listSongs.size - 1)
+                } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
+                    position = if ((position - 1) < 0) listSongs.size - 1 else position - 1
+                }
+                //uri = Uri.parse(listSongs[position].path)
+                metaData()
+                tvSongName.text = listSongs[position].title
+                tvSongArtist.text = listSongs[position].artist
             }
 
-            uri = Uri.parse(listSongs[position].path)
             musicService!!.createMediaPlayer(position)
-            metaData(uri)
-            tvSongName.text = listSongs[position].title
-            tvSongArtist.text = listSongs[position].artist
             seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
@@ -230,16 +270,30 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         } else {
             musicService!!.stop()
             musicService!!.release()
-            if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
-                position = getRandom(listSongs.size - 1)
-            } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
-                position = if ((position - 1) < 0) listSongs.size - 1 else position - 1
+            if(MusicService.isOnline){
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                    position = getRandom(listSongsOnline.size - 1)
+                } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
+                    position = if ((position - 1) < 0) listSongsOnline.size - 1 else position - 1
+                }
+                //uri = Uri.parse(listSongs[position].path)
+                metaData()
+                tvSongName.text = listSongsOnline[position].title
+                tvSongArtist.text = listSongsOnline[position].artistsNames
+            }else{
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                    position = getRandom(listSongs.size - 1)
+                } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
+                    position = if ((position - 1) < 0) listSongs.size - 1 else position - 1
+                }
+                //uri = Uri.parse(listSongs[position].path)
+                metaData()
+                tvSongName.text = listSongs[position].title
+                tvSongArtist.text = listSongs[position].artist
             }
-            uri = Uri.parse(listSongs[position].path)
+
+
             musicService!!.createMediaPlayer(position)
-            metaData(uri)
-            tvSongName.text = listSongs[position].title
-            tvSongArtist.text = listSongs[position].artist
             seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
@@ -267,16 +321,30 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         if (musicService!!.isPlaying()) {
             musicService!!.stop()
             musicService!!.release()
-            if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
-                position = getRandom(listSongs.size - 1)
-            } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
-                position = (position + 1) % listSongs.size
+            if(MusicService.isOnline){
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                    position = getRandom(listSongsOnline.size - 1)
+                } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
+                    position = (position + 1) % listSongsOnline.size
+                }
+                //uri = Uri.parse(listSongs[position].path)
+                metaData()
+                tvSongName.text = listSongsOnline[position].title
+                tvSongArtist.text = listSongsOnline[position].artistsNames
+            }else{
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                    position = getRandom(listSongs.size - 1)
+                } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
+                    position = (position + 1) % listSongs.size
+                }
+                //uri = Uri.parse(listSongs[position].path)
+                metaData()
+                tvSongName.text = listSongs[position].title
+                tvSongArtist.text = listSongs[position].artist
             }
-            uri = Uri.parse(listSongs[position].path)
+
+
             musicService!!.createMediaPlayer(position)
-            metaData(uri)
-            tvSongName.text = listSongs[position].title
-            tvSongArtist.text = listSongs[position].artist
             seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
@@ -286,16 +354,30 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         } else {
             musicService!!.stop()
             musicService!!.release()
-            if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
-                position = getRandom(listSongs.size - 1)
-            } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
-                position = (position + 1) % listSongs.size
+            if(MusicService.isOnline){
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                    position = getRandom(listSongsOnline.size - 1)
+                } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
+                    position = (position + 1) % listSongsOnline.size
+                }
+                //uri = Uri.parse(listSongs[position].path)
+                metaData()
+                tvSongName.text = listSongsOnline[position].title
+                tvSongArtist.text = listSongsOnline[position].artistsNames
+            }else{
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                    position = getRandom(listSongs.size - 1)
+                } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
+                    position = (position + 1) % listSongs.size
+                }
+                //uri = Uri.parse(listSongs[position].path)
+                metaData()
+                tvSongName.text = listSongs[position].title
+                tvSongArtist.text = listSongs[position].artist
             }
-            uri = Uri.parse(listSongs[position].path)
+
+
             musicService!!.createMediaPlayer(position)
-            metaData(uri)
-            tvSongName.text = listSongs[position].title
-            tvSongArtist.text = listSongs[position].artist
             seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
@@ -371,29 +453,49 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         position = intent.getIntExtra("position", -1)
         val sender: String? = intent.getStringExtra("sender")
 
-        listSongs = if (sender != null && sender == "albumDetails") {
-            AlbumDetails.albumSongs
-        } else {
-            MainActivity.musicFiles
+        when(sender){
+            "favoriteSong"->{
+                MusicService.isOnline = true
+                listSongsOnline = MainActivity.listMusicFavorite
+            }
+            "searchSong"->{
+                MusicService.isOnline = true
+                listSongsOnline = MainActivity.listMusicSearch
+            }
+            "topSong"->{
+                MusicService.isOnline = true
+                listSongsOnline = MainActivity.listMusicTop
+            }
+            null->{
+                listSongs = MainActivity.musicFiles
+                MusicService.isOnline = false
+            }
         }
+
         btnPlayPause.setImageResource(R.drawable.ic_pause)
-        uri = Uri.parse(listSongs[position].path)
+        //uri = Uri.parse(listSongs[position].path)
         val intent: Intent = Intent(this, MusicService::class.java)
         intent.putExtra("servicePosition", position)
         startService(intent)
     }
 
-    private fun metaData(uri: Uri) {
-        val retriever = MediaMetadataRetriever()
-        retriever.setDataSource(this, uri)
-        val durationTotal: Int = listSongs[position].duration.toInt() / 1000
-        tvDurationTotal.text = formattedtime(durationTotal)
-        val art: ByteArray? = retriever.embeddedPicture
-        if (art != null) {
-            imgCoverArt.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.size))
-        } else {
-            imgCoverArt.setImageResource(R.drawable.music)
+    private fun metaData() {
+//        val retriever = MediaMetadataRetriever()
+//        retriever.setDataSource(this, uri)
+        val durationTotal: Int
+        if(MusicService.isOnline){
+            durationTotal = listSongsOnline[position].duration
+            loadRelatedSong()
+        }else{
+            durationTotal = listSongs[position].duration.toInt() / 1000
         }
+        tvDurationTotal.text = formattedtime(durationTotal)
+//        val art: ByteArray? = retriever.embeddedPicture
+//        if (art != null) {
+//            imgCoverArt.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.size))
+//        } else {
+//            imgCoverArt.setImageResource(R.drawable.music)
+//        }
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
@@ -407,12 +509,62 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         musicService!!.setCallBack(this)
 
         seekBar.max = musicService!!.getDuration() / 1000
-        metaData(uri)
+        metaData()
 
-        tvSongName.text = listSongs[position].title
-        tvSongArtist.text = listSongs[position].artist
+        if(MusicService.isOnline){
+            tvSongName.text = listSongsOnline[position].title
+            tvSongArtist.text = listSongsOnline[position].artistsNames
+        }else{
+            tvSongName.text = listSongs[position].title
+            tvSongArtist.text = listSongs[position].artist
+        }
+
         musicService!!.onCompleted()
         musicService!!.showNotification(R.drawable.ic_pause)
     }
 
+    private fun loadRelatedSong() {
+
+        progressBarLoadingRecommend.visibility = View.VISIBLE
+
+        ApiService.apiService.getSongRelated(listSongsOnline[position].id).enqueue(object : Callback<ItemRecommend> {
+            override fun onFailure(call: Call<ItemRecommend>, t: Throwable) {
+            }
+
+            override fun onResponse(call: Call<ItemRecommend>, response: Response<ItemRecommend>) {
+                var item: ItemRecommend? = response.body()
+                if (item != null && item.err == 0) {
+                    list = item.data.items as MutableList<ItemSong>
+                    loadInfo()
+                }
+            }
+        })
+    }
+
+    private fun loadInfo() {
+        listSongRelated.clear()
+        for (i in 0 until list.size) {
+            listSongRelated.add(SongInfo(list[i].id,list[i].title,list[i].artistsNames,list[i].thumbnail,list[i].duration, null, null))
+            ApiService.apiService.getInfoMusic(list[i].id).enqueue(object : Callback<DataInfo> {
+                override fun onFailure(call: Call<DataInfo>, t: Throwable) {
+                }
+
+                override fun onResponse(call: Call<DataInfo>, response: Response<DataInfo>) {
+                    val dataInfo: DataInfo? = response.body()
+                    if (dataInfo != null && dataInfo.err == 0) {
+                        var genre = ""
+                        for (element in dataInfo.data.genres){
+                            genre += "${element.name} "
+                        }
+                        listSongRelated[i].genre = genre
+                        listSongRelated[i].source = "http://api.mp3.zing.vn/api/streaming/audio/${listSongRelated[i].id}/128"
+
+                        progressBarLoadingRecommend.visibility = View.GONE
+                        listSongRelatedAdapter.setListSong(listSongRelated)
+                    }
+                }
+
+            })
+        }
+    }
 }
