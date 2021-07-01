@@ -16,5 +16,5 @@ class SongRepository(app: Application) {
     suspend fun insertSong(songInfo: SongInfo) = songDao.insertSong(songInfo)
     suspend fun deleteSong(songInfo: SongInfo) = songDao.deleteSong(songInfo)
     fun getAllSong(): LiveData<List<SongInfo>> = songDao.getAllSong()
-    fun getSong(id:String): LiveData<SongInfo>? = songDao.getSong(id)
+    fun getSong(id: String): LiveData<SongInfo>? = songDao.getSong(id)
 }

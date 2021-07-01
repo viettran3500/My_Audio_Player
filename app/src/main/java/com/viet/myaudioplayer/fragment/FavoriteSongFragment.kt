@@ -16,7 +16,7 @@ import com.viet.myaudioplayer.adapter.ListSongFavoriteAdapter
 import com.viet.myaudioplayer.model.SongInfo
 import kotlinx.android.synthetic.main.fragment_favorite_song.view.*
 
-class FavoriteSongFragment : Fragment(){
+class FavoriteSongFragment : Fragment() {
 
     private val songViewModel: SongViewModel by lazy {
         ViewModelProvider(
@@ -42,7 +42,8 @@ class FavoriteSongFragment : Fragment(){
 
     private fun initRecyclerView(view: View) {
         listSongFavoriteAdapter = ListSongFavoriteAdapter(requireContext(), songViewModel)
-        view.recyclerViewListFavorite.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+        view.recyclerViewListFavorite.layoutManager =
+            LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         view.recyclerViewListFavorite.adapter = listSongFavoriteAdapter
 
         songViewModel.getAllSong().observe(viewLifecycleOwner, Observer {

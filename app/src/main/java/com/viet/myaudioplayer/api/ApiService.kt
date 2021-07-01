@@ -15,7 +15,7 @@ import retrofit2.http.Query
 interface ApiService {
 
     //http://mp3.zing.vn/xhr/chart-realtime?songId=0&videoId=0&albumId=0&chart=song&time=-1
-    companion object{
+    companion object {
         var gson: Gson
             get() = GsonBuilder()
                 .setDateFormat("yyyy-MM-dd HH:mm:ss")

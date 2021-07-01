@@ -22,12 +22,13 @@ import com.viet.myaudioplayer.viewmodel.SongViewModel
 class ListSongRelatedAdapter(
     private var mContext: Context,
     private var listener: OnItemClickListener
-): RecyclerView.Adapter<ListSongRelatedAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<ListSongRelatedAdapter.ViewHolder>() {
 
     private var listSong: MutableList<SongInfo> = mutableListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view: View = LayoutInflater.from(mContext).inflate(R.layout.music_item_online,parent,false)
+        val view: View =
+            LayoutInflater.from(mContext).inflate(R.layout.music_item_online, parent, false)
         return ViewHolder(view)
     }
 
@@ -56,7 +57,7 @@ class ListSongRelatedAdapter(
 
     }
 
-    inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
+    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         var imgThumbnail: ImageView = view.findViewById(R.id.imgThumbnail)
         var tvTitle: TextView = view.findViewById(R.id.tvTitle)
         var tvArtistsNames: TextView = view.findViewById(R.id.tvArtistsNames)
@@ -80,7 +81,7 @@ class ListSongRelatedAdapter(
         }
     }
 
-    fun setListSong(songs: MutableList<SongInfo>){
+    fun setListSong(songs: MutableList<SongInfo>) {
         this.listSong = songs
         notifyDataSetChanged()
     }

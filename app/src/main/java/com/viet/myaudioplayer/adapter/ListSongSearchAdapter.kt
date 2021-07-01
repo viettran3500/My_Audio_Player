@@ -23,12 +23,13 @@ class ListSongSearchAdapter(
     private var mContext: Context,
     private var listSong: MutableList<SongInfo>,
     songViewModel: SongViewModel
-): RecyclerView.Adapter<ListSongSearchAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<ListSongSearchAdapter.ViewHolder>() {
 
     var sViewModel = songViewModel
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view: View = LayoutInflater.from(mContext).inflate(R.layout.music_item_online,parent,false)
+        val view: View =
+            LayoutInflater.from(mContext).inflate(R.layout.music_item_online, parent, false)
         return ViewHolder(view)
     }
 
@@ -40,9 +41,9 @@ class ListSongSearchAdapter(
 
         val s: Int = MainActivity.listMusicFavorite.indexOf(listSong[position])
 
-        if(s < 0){
+        if (s < 0) {
             holder.imgLove.setBackgroundResource(R.drawable.ic_baseline_favorite)
-        }else{
+        } else {
             holder.imgLove.setBackgroundResource(R.drawable.ic_baseline_favorite_true)
         }
 
@@ -58,10 +59,10 @@ class ListSongSearchAdapter(
         holder.tvGenre.text = listSong[position].genre
         holder.imgLove.setOnClickListener {
             val s: Int = MainActivity.listMusicFavorite.indexOf(listSong[position])
-            if(s < 0){
+            if (s < 0) {
                 holder.imgLove.setBackgroundResource(R.drawable.ic_baseline_favorite_true)
                 sViewModel.insertSong(listSong[position])
-            }else{
+            } else {
                 holder.imgLove.setBackgroundResource(R.drawable.ic_baseline_favorite)
                 sViewModel.deleteSong(listSong[position])
             }
@@ -69,14 +70,19 @@ class ListSongSearchAdapter(
         }
 
         holder.imgDownload.setOnClickListener {
-            var request: DownloadManager.Request = DownloadManager.Request(Uri.parse(listSong[position].source))
+            var request: DownloadManager.Request =
+                DownloadManager.Request(Uri.parse(listSong[position].source))
             request.setTitle(Uri.parse(listSong[position].title).toString())
             request.setDescription("Download file...")
             request.setMimeType("audio/MP3")
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_MUSIC, "${listSong[position].title}.mp3")
+            request.setDestinationInExternalPublicDir(
+                Environment.DIRECTORY_MUSIC,
+                "${listSong[position].title}.mp3"
+            )
 
-            var downloadManager: DownloadManager = mContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            var downloadManager: DownloadManager =
+                mContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             downloadManager.enqueue(request)
         }
 
@@ -89,7 +95,7 @@ class ListSongSearchAdapter(
 
     }
 
-    inner class ViewHolder(view: View): RecyclerView.ViewHolder(view){
+    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         var imgThumbnail: ImageView = view.findViewById(R.id.imgThumbnail)
         var tvTitle: TextView = view.findViewById(R.id.tvTitle)
         var tvArtistsNames: TextView = view.findViewById(R.id.tvArtistsNames)

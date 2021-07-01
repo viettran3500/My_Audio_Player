@@ -5,7 +5,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.viewpager2.adapter.FragmentStateAdapter
 
 
-class ViewPagerAdapter(fm: FragmentActivity) : FragmentStateAdapter(fm){
+class ViewPagerAdapter(fm: FragmentActivity) : FragmentStateAdapter(fm) {
 
     private var fragments: MutableList<Fragment> = mutableListOf()
     var titles: MutableList<String> = mutableListOf()

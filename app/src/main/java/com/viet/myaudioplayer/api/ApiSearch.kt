@@ -9,7 +9,7 @@ import retrofit2.http.Query
 
 interface ApiSearch {
 
-    companion object{
+    companion object {
         var apiSearch: ApiSearch
             get() = Retrofit.Builder()
                 .baseUrl("http://ac.mp3.zing.vn/")

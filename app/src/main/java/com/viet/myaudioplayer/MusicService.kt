@@ -29,6 +29,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         var isOnline = false
         var checkPlayOnline = true
     }
+
     var mBinder: IBinder = MyBinder()
     var mediaPlayer: MediaPlayer? = null
     var musicFiles: MutableList<MusicFiles> = mutableListOf()
@@ -82,7 +83,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     private fun playMedia(startPosition: Int) {
-        if(isOnline){
+        if (isOnline) {
 
             musicOnlineFiles = PlayerActivity.listSongsOnline
             position = startPosition
@@ -100,7 +101,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
                     mediaPlayer!!.start()
                 }
             }
-        }else{
+        } else {
             musicFiles = PlayerActivity.listSongs
             position = startPosition
 
@@ -121,7 +122,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     fun createMediaPlayer(positionIn: Int) {
-        if(isOnline) {
+        if (isOnline) {
             checkLoad = false
             position = positionIn
             uri = Uri.parse(musicOnlineFiles[position].source)
@@ -142,7 +143,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
                 }
             }
 
-        }else{
+        } else {
             position = positionIn
             uri = Uri.parse(musicFiles[position].path)
             Log.d("aaa", "$position")
@@ -171,10 +172,10 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         mediaPlayer!!.release()
     }
 
-    fun getDuration(): Int{
-        return if(isOnline){
+    fun getDuration(): Int {
+        return if (isOnline) {
             musicOnlineFiles[position].duration * 1000
-        }else{
+        } else {
             mediaPlayer!!.duration
         }
 
@@ -253,7 +254,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
         var notification: Notification? = null
 
-        if(isOnline){
+        if (isOnline) {
 //            var thumb: Bitmap? = getAlbumArt(musicFiles[position].path)
 //            if (thumb == null) {
 //                thumb = BitmapFactory.decodeResource(resources, R.drawable.music)
@@ -277,7 +278,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
                     .setSound(null)
                     .setOnlyAlertOnce(true)
                     .build()
-        }else{
+        } else {
 
             var thumb: Bitmap? = getAlbumArt(musicFiles[position].path)
             if (thumb == null) {

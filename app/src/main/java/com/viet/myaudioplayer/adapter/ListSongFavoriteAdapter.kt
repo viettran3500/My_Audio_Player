@@ -21,13 +21,14 @@ import com.viet.myaudioplayer.model.SongInfo
 class ListSongFavoriteAdapter(
     private var mContext: Context,
     songViewModel: SongViewModel
-): RecyclerView.Adapter<ListSongFavoriteAdapter.ViewHolder>() {
+) : RecyclerView.Adapter<ListSongFavoriteAdapter.ViewHolder>() {
 
     var sViewModel = songViewModel
     private var listSong: MutableList<SongInfo> = mutableListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view: View = LayoutInflater.from(mContext).inflate(R.layout.music_item_online,parent,false)
+        val view: View =
+            LayoutInflater.from(mContext).inflate(R.layout.music_item_online, parent, false)
         return ViewHolder(view)
     }
 
@@ -57,14 +58,19 @@ class ListSongFavoriteAdapter(
         }
 
         holder.imgDownload.setOnClickListener {
-            var request: DownloadManager.Request = DownloadManager.Request(Uri.parse(listSong[position].source))
+            var request: DownloadManager.Request =
+                DownloadManager.Request(Uri.parse(listSong[position].source))
             request.setTitle(Uri.parse(listSong[position].title).toString())
             request.setDescription("Download file...")
             request.setMimeType("audio/MP3")
             request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
-            request.setDestinationInExternalPublicDir(Environment.DIRECTORY_MUSIC, "${listSong[position].title}.mp3")
+            request.setDestinationInExternalPublicDir(
+                Environment.DIRECTORY_MUSIC,
+                "${listSong[position].title}.mp3"
+            )
 
-            var downloadManager: DownloadManager = mContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
+            var downloadManager: DownloadManager =
+                mContext.getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager
             downloadManager.enqueue(request)
         }
 
@@ -77,7 +83,7 @@ class ListSongFavoriteAdapter(
 
     }
 
-    inner class ViewHolder(view: View): RecyclerView.ViewHolder(view){
+    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         var imgThumbnail: ImageView = view.findViewById(R.id.imgThumbnail)
         var tvTitle: TextView = view.findViewById(R.id.tvTitle)
         var tvArtistsNames: TextView = view.findViewById(R.id.tvArtistsNames)
@@ -101,7 +107,7 @@ class ListSongFavoriteAdapter(
         }
     }
 
-    fun setListSong(songs: MutableList<SongInfo>){
+    fun setListSong(songs: MutableList<SongInfo>) {
         this.listSong = songs
         notifyDataSetChanged()
     }

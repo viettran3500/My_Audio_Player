@@ -92,7 +92,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
             this.runOnUiThread {
                 tvDurationPlayer.text = formattedtime(seekBar.progress)
             }
-            handler.postDelayed(runnablePlus,100)
+            handler.postDelayed(runnablePlus, 100)
         }
         btnFastForward.setOnTouchListener { p0, motionEvent ->
             if (motionEvent != null) {
@@ -106,13 +106,13 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
             true
         }
 
-        runnableMinus= Runnable {
+        runnableMinus = Runnable {
             seekBar.progress = seekBar.progress - 1
             musicService!!.seekTo(seekBar.progress * 1000)
             this.runOnUiThread {
                 tvDurationPlayer.text = formattedtime(seekBar.progress)
             }
-            handler.postDelayed(runnableMinus,100)
+            handler.postDelayed(runnableMinus, 100)
         }
 
         btnFastRewind.setOnTouchListener { p0, motionEvent ->
@@ -193,7 +193,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
             }
         }
 
-        if (/*musicService!!.isPlaying()*/MusicService.checkPlayOnline) {
+        if (MusicService.checkPlayOnline) {
             vumeter.resume(true)
             btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
 
@@ -238,7 +238,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
         handler.removeCallbacks(runnablePlus)
         handler.removeCallbacks(runnableMinus)
         handler.removeCallbacks(runnable)
-        if (/*musicService!!.isPlaying()*/MusicService.checkPlayOnline) {
+        if (MusicService.checkPlayOnline) {
             musicService!!.stop()
             musicService!!.release()
             if (MusicService.isOnline) {
@@ -247,17 +247,15 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = if ((position - 1) < 0) listSongsOnline.size - 1 else position - 1
                 }
-                //uri = Uri.parse(listSongs[position].path)
                 metaData()
                 tvSongName.text = listSongsOnline[position].title
                 tvSongArtist.text = listSongsOnline[position].artistsNames
-            }else{
+            } else {
                 if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
                     position = getRandom(listSongs.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = if ((position - 1) < 0) listSongs.size - 1 else position - 1
                 }
-                //uri = Uri.parse(listSongs[position].path)
                 metaData()
                 tvSongName.text = listSongs[position].title
                 tvSongArtist.text = listSongs[position].artist
@@ -274,23 +272,21 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
         } else {
             musicService!!.stop()
             musicService!!.release()
-            if(MusicService.isOnline){
+            if (MusicService.isOnline) {
                 if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
                     position = getRandom(listSongsOnline.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = if ((position - 1) < 0) listSongsOnline.size - 1 else position - 1
                 }
-                //uri = Uri.parse(listSongs[position].path)
                 metaData()
                 tvSongName.text = listSongsOnline[position].title
                 tvSongArtist.text = listSongsOnline[position].artistsNames
-            }else{
+            } else {
                 if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
                     position = getRandom(listSongs.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = if ((position - 1) < 0) listSongs.size - 1 else position - 1
                 }
-                //uri = Uri.parse(listSongs[position].path)
                 metaData()
                 tvSongName.text = listSongs[position].title
                 tvSongArtist.text = listSongs[position].artist
@@ -332,17 +328,16 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = (position + 1) % listSongsOnline.size
                 }
-                //uri = Uri.parse(listSongs[position].path)
                 metaData()
                 tvSongName.text = listSongsOnline[position].title
                 tvSongArtist.text = listSongsOnline[position].artistsNames
-            }else{
+            } else {
                 if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
                     position = getRandom(listSongs.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = (position + 1) % listSongs.size
                 }
-                //uri = Uri.parse(listSongs[position].path)
+
                 metaData()
                 tvSongName.text = listSongs[position].title
                 tvSongArtist.text = listSongs[position].artist
@@ -360,23 +355,21 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
         } else {
             musicService!!.stop()
             musicService!!.release()
-            if(MusicService.isOnline){
+            if (MusicService.isOnline) {
                 if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
                     position = getRandom(listSongsOnline.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = (position + 1) % listSongsOnline.size
                 }
-                //uri = Uri.parse(listSongs[position].path)
                 metaData()
                 tvSongName.text = listSongsOnline[position].title
                 tvSongArtist.text = listSongsOnline[position].artistsNames
-            }else{
+            } else {
                 if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
                     position = getRandom(listSongs.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = (position + 1) % listSongs.size
                 }
-                //uri = Uri.parse(listSongs[position].path)
                 metaData()
                 tvSongName.text = listSongs[position].title
                 tvSongArtist.text = listSongs[position].artist
@@ -427,7 +420,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
     }
 
     override fun playPauseBtnClick() {
-        if (/*musicService!!.isPlaying()*/MusicService.checkPlayOnline) {
+        if (MusicService.checkPlayOnline) {
             MusicService.checkPlayOnline = false
             vumeter.pause()
             btnPlayPause.setImageResource(R.drawable.ic_play)
@@ -464,27 +457,26 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
         position = intent.getIntExtra("position", -1)
         val sender: String? = intent.getStringExtra("sender")
 
-        when(sender){
-            "favoriteSong"->{
+        when (sender) {
+            "favoriteSong" -> {
                 MusicService.isOnline = true
                 listSongsOnline = MainActivity.listMusicFavorite
             }
-            "searchSong"->{
+            "searchSong" -> {
                 MusicService.isOnline = true
                 listSongsOnline = MainActivity.listMusicSearch
             }
-            "topSong"->{
+            "topSong" -> {
                 MusicService.isOnline = true
                 listSongsOnline = MainActivity.listMusicTop
             }
-            null->{
+            null -> {
                 listSongs = MainActivity.musicFiles
                 MusicService.isOnline = false
             }
         }
 
         btnPlayPause.setImageResource(R.drawable.ic_pause)
-        //uri = Uri.parse(listSongs[position].path)
         val intent: Intent = Intent(this, MusicService::class.java)
         intent.putExtra("servicePosition", position)
         startService(intent)
@@ -492,10 +484,10 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
 
     private fun metaData() {
         val durationTotal: Int
-        if(MusicService.isOnline){
+        if (MusicService.isOnline) {
             durationTotal = listSongsOnline[position].duration
             loadRelatedSong()
-        }else{
+        } else {
             durationTotal = listSongs[position].duration.toInt() / 1000
         }
         tvDurationTotal.text = formattedtime(durationTotal)
@@ -523,7 +515,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
         }
 
         musicService!!.onCompleted()
-        if (/*musicService!!.isPlaying()*/MusicService.checkPlayOnline) {
+        if (MusicService.checkPlayOnline) {
             btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
             musicService!!.showNotification(R.drawable.ic_pause)
         } else {
@@ -537,24 +529,38 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
 
         progressBarLoadingRecommend.visibility = View.VISIBLE
 
-        ApiService.apiService.getSongRelated(listSongsOnline[position].id).enqueue(object : Callback<ItemRecommend> {
-            override fun onFailure(call: Call<ItemRecommend>, t: Throwable) {
-            }
-
-            override fun onResponse(call: Call<ItemRecommend>, response: Response<ItemRecommend>) {
-                var item: ItemRecommend? = response.body()
-                if (item != null && item.err == 0) {
-                    list = item.data.items as MutableList<ItemSong>
-                    loadInfo()
+        ApiService.apiService.getSongRelated(listSongsOnline[position].id)
+            .enqueue(object : Callback<ItemRecommend> {
+                override fun onFailure(call: Call<ItemRecommend>, t: Throwable) {
                 }
-            }
-        })
+
+                override fun onResponse(
+                    call: Call<ItemRecommend>,
+                    response: Response<ItemRecommend>
+                ) {
+                    var item: ItemRecommend? = response.body()
+                    if (item != null && item.err == 0) {
+                        list = item.data.items as MutableList<ItemSong>
+                        loadInfo()
+                    }
+                }
+            })
     }
 
     private fun loadInfo() {
         listSongRelated.clear()
         for (i in 0 until list.size) {
-            listSongRelated.add(SongInfo(list[i].id,list[i].title,list[i].artistsNames,list[i].thumbnail,list[i].duration, null, null))
+            listSongRelated.add(
+                SongInfo(
+                    list[i].id,
+                    list[i].title,
+                    list[i].artistsNames,
+                    list[i].thumbnail,
+                    list[i].duration,
+                    null,
+                    null
+                )
+            )
             ApiService.apiService.getInfoMusic(list[i].id).enqueue(object : Callback<DataInfo> {
                 override fun onFailure(call: Call<DataInfo>, t: Throwable) {
                 }
@@ -563,7 +569,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
                     val dataInfo: DataInfo? = response.body()
                     if (dataInfo != null && dataInfo.err == 0) {
                         var genre = ""
-                        for (element in dataInfo.data.genres){
+                        for (element in dataInfo.data.genres) {
                             genre += "${element.name} "
                         }
                         listSongRelated[i].genre = genre

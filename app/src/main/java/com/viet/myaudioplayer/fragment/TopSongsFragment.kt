@@ -43,8 +43,10 @@ class TopSongsFragment : Fragment() {
     ): View? {
         val view: View = inflater.inflate(R.layout.fragment_top_songs, container, false)
 
-        listSongOnlineAdapter = ListSongOnlineAdapter(requireContext(), MainActivity.listMusicTop, songViewModel)
-        view.recyclerViewListTop.layoutManager = LinearLayoutManager(context, RecyclerView.VERTICAL, false)
+        listSongOnlineAdapter =
+            ListSongOnlineAdapter(requireContext(), MainActivity.listMusicTop, songViewModel)
+        view.recyclerViewListTop.layoutManager =
+            LinearLayoutManager(context, RecyclerView.VERTICAL, false)
         view.recyclerViewListTop.adapter = listSongOnlineAdapter
 
         loadTopSong(view)
@@ -75,7 +77,17 @@ class TopSongsFragment : Fragment() {
 
     private fun loadInfo(view: View) {
         for (i in 0 until listTop.size) {
-            MainActivity.listMusicTop.add(SongInfo(listTop[i].id,listTop[i].title,listTop[i].artistsNames,listTop[i].thumbnail,listTop[i].duration, null, null))
+            MainActivity.listMusicTop.add(
+                SongInfo(
+                    listTop[i].id,
+                    listTop[i].title,
+                    listTop[i].artistsNames,
+                    listTop[i].thumbnail,
+                    listTop[i].duration,
+                    null,
+                    null
+                )
+            )
             ApiService.apiService.getInfoMusic(listTop[i].id).enqueue(object : Callback<DataInfo> {
                 override fun onFailure(call: Call<DataInfo>, t: Throwable) {
                 }
@@ -84,11 +96,12 @@ class TopSongsFragment : Fragment() {
                     val dataInfo: DataInfo? = response.body()
                     if (dataInfo != null && dataInfo.err == 0) {
                         var genre = ""
-                        for (element in dataInfo.data.genres){
+                        for (element in dataInfo.data.genres) {
                             genre += "${element.name} "
                         }
                         MainActivity.listMusicTop[i].genre = genre
-                        MainActivity.listMusicTop[i].source = "http://api.mp3.zing.vn/api/streaming/audio/${MainActivity.listMusicTop[i].id}/128"
+                        MainActivity.listMusicTop[i].source =
+                            "http://api.mp3.zing.vn/api/streaming/audio/${MainActivity.listMusicTop[i].id}/128"
 
                         listSongOnlineAdapter?.notifyDataSetChanged()
                         view.progressBarLoading.visibility = View.GONE

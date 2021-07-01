@@ -7,16 +7,16 @@ import androidx.room.RoomDatabase
 import com.viet.myaudioplayer.model.SongInfo
 
 @Database(entities = [SongInfo::class], version = 1)
-abstract class SongDatabase: RoomDatabase() {
+abstract class SongDatabase : RoomDatabase() {
     abstract fun songDao(): SongDao
 
-    companion object{
+    companion object {
         @Volatile
         var instance: SongDatabase? = null
         val DATABASE_NAME = "song.db"
 
-        fun getInstance(context: Context): SongDatabase{
-            if(instance == null){
+        fun getInstance(context: Context): SongDatabase {
+            if (instance == null) {
                 instance = Room.databaseBuilder(context, SongDatabase::class.java, DATABASE_NAME)
                     .build()
             }

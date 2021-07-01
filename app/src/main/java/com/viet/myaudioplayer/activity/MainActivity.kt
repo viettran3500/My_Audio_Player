@@ -108,26 +108,26 @@ class MainActivity : AppCompatActivity() {
             ViewPagerAdapter(this)
         viewPagerAdapter.addFragments(topSongsFragment, "Top Hits")
         viewPagerAdapter.addFragments(searchFragment, "Search Song")
-        viewPagerAdapter.addFragments(favoriteSongFragment,"Favorite Song")
+        viewPagerAdapter.addFragments(favoriteSongFragment, "Favorite Song")
         viewPager.adapter = viewPagerAdapter
-        TabLayoutMediator(tabLayout, viewPager){tab, position ->
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = viewPagerAdapter.titles[position]
         }.attach()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        val inflater : MenuInflater = menuInflater
+        val inflater: MenuInflater = menuInflater
         inflater.inflate(R.menu.menu_main, menu);
         return super.onCreateOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        when(item.itemId){
-            R.id.ofline-> {
+        when (item.itemId) {
+            R.id.ofline -> {
                 startActivity(Intent(this, OfflineActivity::class.java))
             }
         }
         return super.onOptionsItemSelected(item)
     }
-    
+
 }

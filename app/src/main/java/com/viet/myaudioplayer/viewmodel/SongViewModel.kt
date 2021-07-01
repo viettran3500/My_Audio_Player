@@ -10,7 +10,7 @@ import com.viet.myaudioplayer.model.SongInfo
 import kotlinx.coroutines.launch
 import java.lang.IllegalArgumentException
 
-class SongViewModel(application: Application): ViewModel() {
+class SongViewModel(application: Application) : ViewModel() {
     private val songRepository: SongRepository = SongRepository(application)
 
     fun insertSong(songInfo: SongInfo) = viewModelScope.launch {
@@ -24,10 +24,10 @@ class SongViewModel(application: Application): ViewModel() {
     fun getAllSong(): LiveData<List<SongInfo>> = songRepository.getAllSong()
     fun getSong(id: String): LiveData<SongInfo>? = songRepository.getSong(id)
 
-    class SongViewModelFactory(val application: Application): ViewModelProvider.Factory{
+    class SongViewModelFactory(val application: Application) : ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {
 
-            if(modelClass.isAssignableFrom(SongViewModel::class.java)){
+            if (modelClass.isAssignableFrom(SongViewModel::class.java)) {
                 @Suppress("UNCHECKED_CAST")
                 return SongViewModel(application) as T
             }

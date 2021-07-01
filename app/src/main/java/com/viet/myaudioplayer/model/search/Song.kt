@@ -1,13 +1,5 @@
 package com.viet.myaudioplayer.model.search
 
-//data class SearchSong(
-//    var thumb: String,
-//    var artist: String,
-//    var duration: Int,
-//    var name: String,
-//    var id: String
-//)
-
 data class Song(
     var hasVideo: String?,
     var thumb: String?,
