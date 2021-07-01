@@ -54,4 +54,6 @@ dependencies {
     kapt  'androidx.room:room-compiler:2.2.5'
     implementation 'androidx.room:room-ktx:2.2.5'
 
+    implementation 'io.gresse.hugo.vumeterlibrary:vumeterlibrary:1.0.17'
+
 }

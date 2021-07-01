@@ -6,6 +6,7 @@ import android.app.Service
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.AudioAttributes
 import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.net.Uri
@@ -26,6 +27,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         var shuffleBoolean = false
         var repeatBoolean = 0
         var isOnline = false
+        var checkPlayOnline = true
     }
     var mBinder: IBinder = MyBinder()
     var mediaPlayer: MediaPlayer? = null
@@ -35,6 +37,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     var position: Int = -1
     var actionPlaying: ActionPlaying? = null
     lateinit var mediaSessionCompat: MediaSessionCompat
+    var checkLoad = false
 
 
     override fun onCreate() {
@@ -118,14 +121,25 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     fun createMediaPlayer(positionIn: Int) {
-        if(isOnline){
+        if(isOnline) {
+            checkLoad = false
             position = positionIn
             uri = Uri.parse(musicOnlineFiles[position].source)
             mediaPlayer = MediaPlayer()
+            mediaPlayer!!.setAudioAttributes(
+                AudioAttributes
+                    .Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            );
             mediaPlayer!!.setDataSource(musicOnlineFiles[position].source)
             mediaPlayer!!.prepareAsync()
             mediaPlayer!!.setOnPreparedListener {
                 it.start()
+                checkLoad = true
+                if (!checkPlayOnline) {
+                    it.pause()
+                }
             }
 
         }else{
@@ -137,15 +151,12 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     fun start() {
-        if(isOnline){
-
-        }else{
-            mediaPlayer!!.start()
-        }
-
+        checkPlayOnline = true
+        mediaPlayer!!.start()
     }
 
     fun pause() {
+        checkPlayOnline = false
         mediaPlayer!!.pause()
     }
 
@@ -153,6 +164,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     fun stop() {
         mediaPlayer!!.stop()
+        checkPlayOnline = false
     }
 
     fun release() {
@@ -175,24 +187,38 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     fun getCurrentPosition() = mediaPlayer!!.currentPosition
 
     fun onCompleted() {
-        //mediaPlayer!!.setOnCompletionListener(this)
+        mediaPlayer!!.setOnCompletionListener(this)
     }
 
     override fun onCompletion(p0: MediaPlayer?) {
-//        if (actionPlaying != null) {
-//            actionPlaying!!.nextBtnClick()
-//            if (mediaPlayer != null) {
-//
-//                createMediaPlayer(position)
-//                mediaPlayer!!.start()
-//                showNotification(R.drawable.ic_pause)
-//
-//                if (position == 0 && repeatBoolean == 0) {
-//                    actionPlaying!!.playPauseBtnClick()
-//                }
-//                onCompleted()
-//            }
-//        }
+        if (isOnline) {
+            if (checkLoad) {
+                if (actionPlaying != null) {
+                    actionPlaying!!.nextBtnClick()
+                    if (mediaPlayer != null) {
+
+                        showNotification(R.drawable.ic_pause)
+
+                        if (position == 0 && repeatBoolean == 0) {
+                            actionPlaying!!.playPauseBtnClick()
+                        }
+                    }
+                }
+            }
+        } else {
+            if (actionPlaying != null) {
+                actionPlaying!!.nextBtnClick()
+                if (mediaPlayer != null) {
+
+                    showNotification(R.drawable.ic_pause)
+
+                    if (position == 0 && repeatBoolean == 0) {
+                        actionPlaying!!.playPauseBtnClick()
+                    }
+                }
+            }
+        }
+
     }
 
     fun setCallBack(actionPlaying: ActionPlaying) {
@@ -295,7 +321,6 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
     override fun onDestroy() {
         super.onDestroy()
-        Log.d("aaa", "de")
         if (mediaPlayer != null) {
             mediaPlayer!!.release()
             mediaPlayer = null
@@ -303,7 +328,6 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-        Log.d("aaa", "un")
         return super.onUnbind(intent)
     }
 }

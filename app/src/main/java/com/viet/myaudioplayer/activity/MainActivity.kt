@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.database.Cursor
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
@@ -53,13 +54,11 @@ class MainActivity : AppCompatActivity() {
         )[SongViewModel::class.java]
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         setSupportActionBar(toolbar)
-        //supportActionBar?.setDisplayShowHomeEnabled(true)
 
         checkkPermission()
 
@@ -68,8 +67,6 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    @SuppressLint("ShowToast")
-    @RequiresApi(Build.VERSION_CODES.Q)
     private fun checkkPermission() {
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -87,7 +84,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -110,8 +106,8 @@ class MainActivity : AppCompatActivity() {
     private fun initViewPager() {
         viewPagerAdapter =
             ViewPagerAdapter(this)
-        viewPagerAdapter.addFragments(TopSongsFragment(), "Top Hits")
-        viewPagerAdapter.addFragments(searchFragment,"Search Song")
+        viewPagerAdapter.addFragments(topSongsFragment, "Top Hits")
+        viewPagerAdapter.addFragments(searchFragment, "Search Song")
         viewPagerAdapter.addFragments(favoriteSongFragment,"Favorite Song")
         viewPager.adapter = viewPagerAdapter
         TabLayoutMediator(tabLayout, viewPager){tab, position ->
@@ -133,4 +129,5 @@ class MainActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
+    
 }

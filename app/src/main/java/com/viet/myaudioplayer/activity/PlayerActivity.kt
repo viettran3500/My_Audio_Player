@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.viet.myaudioplayer.ActionPlaying
 import com.viet.myaudioplayer.MusicService
+import com.viet.myaudioplayer.OnItemClickListener
 import com.viet.myaudioplayer.R
 import com.viet.myaudioplayer.adapter.ListSongRelatedAdapter
 import com.viet.myaudioplayer.api.ApiService
@@ -34,7 +35,7 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.util.*
 
-class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
+class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, OnItemClickListener {
 
     companion object {
         var listSongs: MutableList<MusicFiles> = mutableListOf()
@@ -45,7 +46,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     var list: MutableList<ItemSong> = mutableListOf()
 
     private var position = -1
-    //private lateinit var uri: Uri
 
     private var thread: HandlerThread = HandlerThread("Thread")
     private lateinit var playThread: Thread
@@ -65,7 +65,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_player)
 
-        listSongRelatedAdapter = ListSongRelatedAdapter(this)
+        listSongRelatedAdapter = ListSongRelatedAdapter(this, this)
         recyclerViewRelated.layoutManager = LinearLayoutManager(this, RecyclerView.VERTICAL, false)
         recyclerViewRelated.adapter = listSongRelatedAdapter
 
@@ -193,16 +193,19 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             }
         }
 
-        if(musicService != null) {
-            if (musicService!!.isPlaying())
-                btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
-            else
-                btnPlayPause.setBackgroundResource(R.drawable.ic_play)
+        if (/*musicService!!.isPlaying()*/MusicService.checkPlayOnline) {
+            vumeter.resume(true)
+            btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
+
+        } else {
+            vumeter.pause()
+            btnPlayPause.setBackgroundResource(R.drawable.ic_play)
         }
     }
 
     override fun onResume() {
-
+        handler.post(runnable)
+        checkShuffleRepeat()
         val intent = Intent(this, MusicService::class.java)
         bindService(intent, this, Context.BIND_AUTO_CREATE)
         playThreadBtn()
@@ -235,10 +238,10 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         handler.removeCallbacks(runnablePlus)
         handler.removeCallbacks(runnableMinus)
         handler.removeCallbacks(runnable)
-        if (musicService!!.isPlaying()) {
+        if (/*musicService!!.isPlaying()*/MusicService.checkPlayOnline) {
             musicService!!.stop()
             musicService!!.release()
-            if(MusicService.isOnline){
+            if (MusicService.isOnline) {
                 if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
                     position = getRandom(listSongsOnline.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
@@ -264,6 +267,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
+            vumeter.resume(true)
             musicService!!.showNotification(R.drawable.ic_pause)
             btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
             musicService!!.start()
@@ -297,6 +301,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
+            vumeter.pause()
             musicService!!.showNotification(R.drawable.ic_play)
             btnPlayPause.setBackgroundResource(R.drawable.ic_play)
         }
@@ -318,10 +323,10 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         handler.removeCallbacks(runnablePlus)
         handler.removeCallbacks(runnableMinus)
         handler.removeCallbacks(runnable)
-        if (musicService!!.isPlaying()) {
+        if (/*musicService!!.isPlaying()*/MusicService.checkPlayOnline) {
             musicService!!.stop()
             musicService!!.release()
-            if(MusicService.isOnline){
+            if (MusicService.isOnline) {
                 if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
                     position = getRandom(listSongsOnline.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
@@ -343,11 +348,12 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
                 tvSongArtist.text = listSongs[position].artist
             }
 
-
+            seekBar.progress = 0
             musicService!!.createMediaPlayer(position)
             seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
+            vumeter.resume(true)
             musicService!!.showNotification(R.drawable.ic_pause)
             btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
             musicService!!.start()
@@ -381,6 +387,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
+            vumeter.pause()
             musicService!!.showNotification(R.drawable.ic_play)
             btnPlayPause.setBackgroundResource(R.drawable.ic_play)
         }
@@ -420,13 +427,17 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     }
 
     override fun playPauseBtnClick() {
-        if (musicService!!.isPlaying()) {
+        if (/*musicService!!.isPlaying()*/MusicService.checkPlayOnline) {
+            MusicService.checkPlayOnline = false
+            vumeter.pause()
             btnPlayPause.setImageResource(R.drawable.ic_play)
             musicService!!.showNotification(R.drawable.ic_play)
             musicService!!.pause()
             seekBar.max = musicService!!.getDuration() / 1000
             handler.removeCallbacks(runnable)
         } else {
+            MusicService.checkPlayOnline = true
+            vumeter.resume(true)
             btnPlayPause.setImageResource(R.drawable.ic_pause)
             musicService!!.showNotification(R.drawable.ic_pause)
             musicService!!.start()
@@ -480,8 +491,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
     }
 
     private fun metaData() {
-//        val retriever = MediaMetadataRetriever()
-//        retriever.setDataSource(this, uri)
         val durationTotal: Int
         if(MusicService.isOnline){
             durationTotal = listSongsOnline[position].duration
@@ -490,12 +499,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
             durationTotal = listSongs[position].duration.toInt() / 1000
         }
         tvDurationTotal.text = formattedtime(durationTotal)
-//        val art: ByteArray? = retriever.embeddedPicture
-//        if (art != null) {
-//            imgCoverArt.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.size))
-//        } else {
-//            imgCoverArt.setImageResource(R.drawable.music)
-//        }
     }
 
     override fun onServiceDisconnected(name: ComponentName?) {
@@ -511,16 +514,23 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
         seekBar.max = musicService!!.getDuration() / 1000
         metaData()
 
-        if(MusicService.isOnline){
+        if (MusicService.isOnline) {
             tvSongName.text = listSongsOnline[position].title
             tvSongArtist.text = listSongsOnline[position].artistsNames
-        }else{
+        } else {
             tvSongName.text = listSongs[position].title
             tvSongArtist.text = listSongs[position].artist
         }
 
         musicService!!.onCompleted()
-        musicService!!.showNotification(R.drawable.ic_pause)
+        if (/*musicService!!.isPlaying()*/MusicService.checkPlayOnline) {
+            btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
+            musicService!!.showNotification(R.drawable.ic_pause)
+        } else {
+            musicService!!.showNotification(R.drawable.ic_play)
+            btnPlayPause.setBackgroundResource(R.drawable.ic_play)
+        }
+
     }
 
     private fun loadRelatedSong() {
@@ -557,7 +567,8 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
                             genre += "${element.name} "
                         }
                         listSongRelated[i].genre = genre
-                        listSongRelated[i].source = "http://api.mp3.zing.vn/api/streaming/audio/${listSongRelated[i].id}/128"
+                        listSongRelated[i].source =
+                            "http://api.mp3.zing.vn/api/streaming/audio/${listSongRelated[i].id}/128"
 
                         progressBarLoadingRecommend.visibility = View.GONE
                         listSongRelatedAdapter.setListSong(listSongRelated)
@@ -565,6 +576,49 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection {
                 }
 
             })
+        }
+    }
+
+    override fun onItemClick(pos: Int) {
+        MusicService.isOnline = true
+        listSongsOnline = listSongRelated
+        handler.removeCallbacks(runnablePlus)
+        handler.removeCallbacks(runnableMinus)
+        handler.removeCallbacks(runnable)
+
+        if (/*musicService!!.isPlaying()*/MusicService.checkPlayOnline) {
+            musicService!!.stop()
+            musicService!!.release()
+
+            position = pos
+            metaData()
+            tvSongName.text = listSongsOnline[position].title
+            tvSongArtist.text = listSongsOnline[position].artistsNames
+
+            musicService!!.createMediaPlayer(position)
+            seekBar.max = musicService!!.getDuration() / 1000
+            handler.post(runnable)
+            musicService!!.onCompleted()
+            vumeter.resume(true)
+            musicService!!.showNotification(R.drawable.ic_pause)
+            btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
+            musicService!!.start()
+        } else {
+            musicService!!.stop()
+            musicService!!.release()
+
+            position = pos
+            metaData()
+            tvSongName.text = listSongsOnline[position].title
+            tvSongArtist.text = listSongsOnline[position].artistsNames
+
+            musicService!!.createMediaPlayer(position)
+            seekBar.max = musicService!!.getDuration() / 1000
+            handler.post(runnable)
+            musicService!!.onCompleted()
+            vumeter.pause()
+            musicService!!.showNotification(R.drawable.ic_play)
+            btnPlayPause.setBackgroundResource(R.drawable.ic_play)
         }
     }
 }

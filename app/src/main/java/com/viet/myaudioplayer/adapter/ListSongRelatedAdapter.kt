@@ -13,13 +13,15 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.viet.myaudioplayer.OnItemClickListener
 import com.viet.myaudioplayer.R
 import com.viet.myaudioplayer.activity.PlayerActivity
 import com.viet.myaudioplayer.model.SongInfo
 import com.viet.myaudioplayer.viewmodel.SongViewModel
 
 class ListSongRelatedAdapter(
-    private var mContext: Context
+    private var mContext: Context,
+    private var listener: OnItemClickListener
 ): RecyclerView.Adapter<ListSongRelatedAdapter.ViewHolder>() {
 
     private var listSong: MutableList<SongInfo> = mutableListOf()
@@ -45,15 +47,23 @@ class ListSongRelatedAdapter(
         holder.tvArtistsNames.text = listSong[position].artistsNames
         holder.tvTime.text = formattedTime(listSong[position].duration)
         holder.tvGenre.text = listSong[position].genre
+        holder.imgLove.visibility = View.INVISIBLE
+        holder.imgDownload.visibility = View.INVISIBLE
+
+        holder.itemView.setOnClickListener {
+            listener.onItemClick(position)
+        }
 
     }
 
-    inner class ViewHolder(view: View): RecyclerView.ViewHolder(view){
+    inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
         var imgThumbnail: ImageView = view.findViewById(R.id.imgThumbnail)
         var tvTitle: TextView = view.findViewById(R.id.tvTitle)
         var tvArtistsNames: TextView = view.findViewById(R.id.tvArtistsNames)
         var tvGenre: TextView = view.findViewById(R.id.tvGenre)
         var tvTime: TextView = view.findViewById(R.id.tvTime)
+        var imgLove: ImageButton = view.findViewById(R.id.imgLove)
+        var imgDownload: ImageButton = view.findViewById(R.id.imgDownload)
     }
 
     private fun formattedTime(mCurrentPosition: Int): String {
