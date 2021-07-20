@@ -20,6 +20,7 @@ import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.tabs.TabLayoutMediator
@@ -45,6 +46,7 @@ class MainActivity : AppCompatActivity() {
         var listMusicTop: MutableList<SongInfo> = mutableListOf()
         var listMusicSearch: MutableList<SongInfo> = mutableListOf()
         var listMusicFavorite: MutableList<SongInfo> = mutableListOf()
+        var listSongRelated: MutableList<SongInfo> = mutableListOf()
     }
 
     private val songViewModel: SongViewModel by lazy {
@@ -70,12 +72,12 @@ class MainActivity : AppCompatActivity() {
     private fun checkkPermission() {
         if (ContextCompat.checkSelfPermission(
                 this,
-                Manifest.permission.READ_EXTERNAL_STORAGE
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
                 this@MainActivity,
-                arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                 REQUEST_CODE
             )
         } else {
@@ -96,7 +98,7 @@ class MainActivity : AppCompatActivity() {
             } else {
                 ActivityCompat.requestPermissions(
                     this@MainActivity,
-                    arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE),
+                    arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
                     REQUEST_CODE
                 )
             }

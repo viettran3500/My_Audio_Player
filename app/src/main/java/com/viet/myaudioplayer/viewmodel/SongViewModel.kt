@@ -1,10 +1,7 @@
 package com.viet.myaudioplayer.viewmodel
 
 import android.app.Application
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.viet.myaudioplayer.database.SongRepository
 import com.viet.myaudioplayer.model.SongInfo
 import kotlinx.coroutines.launch
@@ -21,8 +18,7 @@ class SongViewModel(application: Application) : ViewModel() {
         songRepository.deleteSong(songInfo)
     }
 
-    fun getAllSong(): LiveData<List<SongInfo>> = songRepository.getAllSong()
-    fun getSong(id: String): LiveData<SongInfo>? = songRepository.getSong(id)
+    fun getAllSong() = songRepository.getAllSong()
 
     class SongViewModelFactory(val application: Application) : ViewModelProvider.Factory {
         override fun <T : ViewModel?> create(modelClass: Class<T>): T {

@@ -36,7 +36,6 @@ class FavoriteSongFragment : Fragment() {
 
         initRecyclerView(view)
 
-
         return view
     }
 
@@ -48,7 +47,7 @@ class FavoriteSongFragment : Fragment() {
 
         songViewModel.getAllSong().observe(viewLifecycleOwner, Observer {
             MainActivity.listMusicFavorite = it as MutableList<SongInfo>
-            listSongFavoriteAdapter.setListSong(it as MutableList<SongInfo>)
+            listSongFavoriteAdapter.setListSong(it)
         })
     }
 
