@@ -15,6 +15,8 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.viet.myaudioplayer.activity.PlayerActivity
 import com.viet.myaudioplayer.R
+import com.viet.myaudioplayer.databinding.MusicItemOnlineBinding
+import com.viet.myaudioplayer.databinding.MusicItemsBinding
 import com.viet.myaudioplayer.model.MusicFiles
 import java.lang.Exception
 
@@ -22,8 +24,11 @@ class MusicAdapter(private var mContext: Context, private var mFile: MutableList
     RecyclerView.Adapter<MusicAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        val view: View = LayoutInflater.from(mContext).inflate(R.layout.music_items, parent, false)
-        return ViewHolder(view)
+        val layoutInflater = LayoutInflater.from(parent.context)
+        val binding: MusicItemsBinding =
+            MusicItemsBinding.inflate(layoutInflater, parent, false)
+
+        return ViewHolder(binding)
     }
 
     override fun getItemCount(): Int {
@@ -31,33 +36,21 @@ class MusicAdapter(private var mContext: Context, private var mFile: MutableList
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.fileName.text = mFile[position].title
-        val image: Bitmap? = getAlbumArt(mFile[position].path)
-        if (image != null) {
-            holder.albumArt.setImageBitmap(image)
-        } else {
-            holder.albumArt.setImageResource(R.drawable.music)
-        }
-        holder.itemView.setOnClickListener {
-            val intent = Intent(mContext, PlayerActivity::class.java)
-            intent.putExtra("position", position)
-            mContext.startActivity(intent)
-        }
+
+        holder.bind(position)
     }
 
-    inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        var fileName: TextView = view.findViewById(R.id.tvMusicFileName)
-        var albumArt: ImageView = view.findViewById(R.id.imgMusic)
-    }
+    inner class ViewHolder(var binding: MusicItemsBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(position: Int) {
+            val data: MusicFiles = mFile[position]
+            binding.dataOffline = data
+            binding.executePendingBindings()
 
-    private fun getAlbumArt(uri: String): Bitmap? {
-        val retriever = MediaMetadataRetriever()
-        retriever.setDataSource(mContext, Uri.parse(uri))
-        val art: ByteArray? = retriever.embeddedPicture
-        return if (art != null) {
-            BitmapFactory.decodeByteArray(art, 0, art.size)
-        } else {
-            null
+            binding.audioItem.setOnClickListener {
+                val intent = Intent(mContext, PlayerActivity::class.java)
+                intent.putExtra("position", position)
+                mContext.startActivity(intent)
+            }
         }
     }
 }
