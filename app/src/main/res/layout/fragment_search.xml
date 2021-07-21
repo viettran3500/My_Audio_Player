@@ -1,38 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@color/colorPrimaryDark"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".fragment.TopSongsFragment">
+<layout>
 
-    <EditText
-        android:imeOptions="actionSearch"
-        android:inputType="text"
-        android:layout_margin="5dp"
-        android:hint="Search"
-        android:textColor="#000"
-        android:id="@+id/editTextSearch"
-        android:background="#fff"
-        app:layout_constraintTop_toTopOf="parent"
+    <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
-    <ProgressBar
-        android:progressBackgroundTint="@color/colorAccent"
-        android:id="@+id/progressBarLoadingSearch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toBottomOf="@id/editTextSearch"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:visibility="gone"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewSearch"
-        app:layout_constraintTop_toBottomOf="@id/progressBarLoadingSearch"
+        android:layout_height="match_parent"
         android:background="@color/colorPrimaryDark"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        tools:context=".fragment.TopSongsFragment">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <EditText
+            android:id="@+id/editTextSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="#fff"
+            android:hint="Search"
+            android:imeOptions="actionSearch"
+            android:inputType="text"
+            android:textColor="#000"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ProgressBar
+            android:id="@+id/progressBarLoadingSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:progressBackgroundTint="@color/colorAccent"
+            android:visibility="gone"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/editTextSearch" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewSearch"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/colorPrimaryDark"
+            app:layout_constraintTop_toBottomOf="@id/progressBarLoadingSearch" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</layout>

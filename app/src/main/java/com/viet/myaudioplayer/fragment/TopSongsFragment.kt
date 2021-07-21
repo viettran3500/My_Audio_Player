@@ -9,11 +9,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.viet.myaudioplayer.R
 import com.viet.myaudioplayer.viewmodel.SongViewModel
 import com.viet.myaudioplayer.adapter.ListSongOnlineAdapter
+import com.viet.myaudioplayer.databinding.FragmentTopSongsBinding
 import com.viet.myaudioplayer.viewmodel.SongOnlineViewModel
-import kotlinx.android.synthetic.main.fragment_top_songs.view.*
 
 
 class TopSongsFragment : Fragment() {
@@ -34,29 +33,31 @@ class TopSongsFragment : Fragment() {
         )[SongViewModel::class.java]
     }
 
+    private lateinit var binding: FragmentTopSongsBinding
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view: View = inflater.inflate(R.layout.fragment_top_songs, container, false)
-        initRecyclerView(view)
+        binding = FragmentTopSongsBinding.inflate(layoutInflater, container, false)
+
+        initRecyclerView()
 
         songViewModel.getAllSong().observe(viewLifecycleOwner, Observer {
             listSongOnlineAdapter.notifyDataSetChanged()
         })
 
-        return view
+        return binding.root
     }
 
-    private fun initRecyclerView(view: View) {
+    private fun initRecyclerView() {
         listSongOnlineAdapter = ListSongOnlineAdapter(requireContext(), songViewModel)
-        view.recyclerViewListTop.layoutManager =
+        binding.recyclerViewListTop.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-        view.recyclerViewListTop.adapter = listSongOnlineAdapter
+        binding.recyclerViewListTop.adapter = listSongOnlineAdapter
 
         songOnlineViewModel.getListSongObserver().observe(viewLifecycleOwner, Observer {
-            view.progressBarLoading.visibility = View.GONE
+            binding.progressBarLoading.visibility = View.GONE
             listSongOnlineAdapter.setListSong(it)
         })
         songOnlineViewModel.getTopSong()

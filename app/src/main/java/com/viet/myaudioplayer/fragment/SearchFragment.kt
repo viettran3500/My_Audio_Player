@@ -12,11 +12,10 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.viet.myaudioplayer.R
 import com.viet.myaudioplayer.viewmodel.SongViewModel
 import com.viet.myaudioplayer.adapter.ListSongSearchAdapter
+import com.viet.myaudioplayer.databinding.FragmentSearchBinding
 import com.viet.myaudioplayer.viewmodel.SongOnlineViewModel
-import kotlinx.android.synthetic.main.fragment_search.view.*
 
 class SearchFragment : Fragment() {
 
@@ -40,31 +39,33 @@ class SearchFragment : Fragment() {
         )[SongViewModel::class.java]
     }
 
+    private lateinit var binding: FragmentSearchBinding
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view: View = inflater.inflate(R.layout.fragment_search, container, false)
+        binding = FragmentSearchBinding.inflate(layoutInflater, container, false)
 
         thread.start()
         handler = Handler(thread.looper)
         runnable = Runnable {
             this.activity?.runOnUiThread {
-                view.editTextSearch.isEnabled = true
+                binding.editTextSearch.isEnabled = true
             }
         }
 
         listSongSearchAdapter =
             ListSongSearchAdapter(requireContext(), songViewModel)
-        view.recyclerViewSearch.layoutManager =
+        binding.recyclerViewSearch.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-        view.recyclerViewSearch.adapter = listSongSearchAdapter
+        binding.recyclerViewSearch.adapter = listSongSearchAdapter
 
-        view.editTextSearch.setOnEditorActionListener { textView, i, keyEvent ->
+        binding.editTextSearch.setOnEditorActionListener { textView, i, keyEvent ->
             if (i == EditorInfo.IME_ACTION_SEARCH) {
-                view.editTextSearch.isEnabled = false
+                binding.editTextSearch.isEnabled = false
                 handler.postDelayed(runnable, 1000)
-                search(view, view.editTextSearch.text.toString())
+                search(binding.editTextSearch.text.toString())
             }
             false
         }
@@ -73,12 +74,12 @@ class SearchFragment : Fragment() {
             listSongSearchAdapter.notifyDataSetChanged()
         })
 
-        return view
+        return binding.root
     }
 
-    private fun search(view: View, text: String) {
+    private fun search(text: String) {
         songOnlineViewModel.getListSearchObserver().observe(viewLifecycleOwner, Observer {
-            view.progressBarLoadingSearch.visibility = View.GONE
+            binding.progressBarLoadingSearch.visibility = View.GONE
             listSongSearchAdapter.setListSong(it)
         })
         songOnlineViewModel.searchSong(text)

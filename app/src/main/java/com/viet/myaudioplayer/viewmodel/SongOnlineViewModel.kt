@@ -1,25 +1,21 @@
 package com.viet.myaudioplayer.viewmodel
 
 import android.app.Application
-import android.view.View
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.viet.myaudioplayer.activity.MainActivity
-import com.viet.myaudioplayer.activity.PlayerActivity
 import com.viet.myaudioplayer.api.ApiSearch
 import com.viet.myaudioplayer.api.ApiService
 import com.viet.myaudioplayer.model.SongInfo
 import com.viet.myaudioplayer.model.infomusic.DataInfo
-import com.viet.myaudioplayer.model.infomusic.Genre
 import com.viet.myaudioplayer.model.infomusic.InfoMusic
 import com.viet.myaudioplayer.model.recommend.ItemRecommend
 import com.viet.myaudioplayer.model.search.Root
 import com.viet.myaudioplayer.model.search.Song
 import com.viet.myaudioplayer.model.top.ItemSong
 import com.viet.myaudioplayer.model.top.ItemTop
-import kotlinx.android.synthetic.main.activity_player.*
 import kotlinx.coroutines.launch
 import retrofit2.Call
 import retrofit2.Callback
@@ -91,7 +87,7 @@ class SongOnlineViewModel : ViewModel() {
                                     list[i].name,
                                     list[i].artistsNames,
                                     list[i].thumbnail,
-                                    list[i].duration.toInt(),
+                                    list[i].duration,
                                     null,
                                     "http://api.mp3.zing.vn/api/streaming/audio/${list[i].id}/128"
                                 )

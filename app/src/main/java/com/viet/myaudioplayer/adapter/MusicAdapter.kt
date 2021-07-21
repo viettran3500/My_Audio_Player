@@ -2,26 +2,17 @@ package com.viet.myaudioplayer.adapter
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.media.MediaMetadataRetriever
-import android.net.Uri
-import android.os.ParcelFileDescriptor
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.viet.myaudioplayer.activity.PlayerActivity
-import com.viet.myaudioplayer.R
-import com.viet.myaudioplayer.databinding.MusicItemOnlineBinding
 import com.viet.myaudioplayer.databinding.MusicItemsBinding
 import com.viet.myaudioplayer.model.MusicFiles
-import java.lang.Exception
 
-class MusicAdapter(private var mContext: Context, private var mFile: MutableList<MusicFiles>) :
+class MusicAdapter(private var mContext: Context) :
     RecyclerView.Adapter<MusicAdapter.ViewHolder>() {
+
+    private var mFile: MutableList<MusicFiles> = mutableListOf()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -52,5 +43,10 @@ class MusicAdapter(private var mContext: Context, private var mFile: MutableList
                 mContext.startActivity(intent)
             }
         }
+    }
+
+    fun setList(mFile: MutableList<MusicFiles>) {
+        this.mFile = mFile
+        notifyDataSetChanged()
     }
 }

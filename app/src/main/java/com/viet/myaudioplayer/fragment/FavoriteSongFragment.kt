@@ -9,12 +9,11 @@ import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.viet.myaudioplayer.R
 import com.viet.myaudioplayer.viewmodel.SongViewModel
 import com.viet.myaudioplayer.activity.MainActivity
 import com.viet.myaudioplayer.adapter.ListSongFavoriteAdapter
+import com.viet.myaudioplayer.databinding.FragmentFavoriteSongBinding
 import com.viet.myaudioplayer.model.SongInfo
-import kotlinx.android.synthetic.main.fragment_favorite_song.view.*
 
 class FavoriteSongFragment : Fragment() {
 
@@ -27,23 +26,24 @@ class FavoriteSongFragment : Fragment() {
 
     lateinit var listSongFavoriteAdapter: ListSongFavoriteAdapter
 
+    private lateinit var binding: FragmentFavoriteSongBinding
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view: View = inflater.inflate(R.layout.fragment_favorite_song, container, false)
+        binding = FragmentFavoriteSongBinding.inflate(layoutInflater, container, false)
 
+        initRecyclerView()
 
-        initRecyclerView(view)
-
-        return view
+        return binding.root
     }
 
-    private fun initRecyclerView(view: View) {
+    private fun initRecyclerView() {
         listSongFavoriteAdapter = ListSongFavoriteAdapter(requireContext(), songViewModel)
-        view.recyclerViewListFavorite.layoutManager =
+        binding.recyclerViewListFavorite.layoutManager =
             LinearLayoutManager(context, RecyclerView.VERTICAL, false)
-        view.recyclerViewListFavorite.adapter = listSongFavoriteAdapter
+        binding.recyclerViewListFavorite.adapter = listSongFavoriteAdapter
 
         songViewModel.getAllSong().observe(viewLifecycleOwner, Observer {
             MainActivity.listMusicFavorite = it as MutableList<SongInfo>

@@ -22,9 +22,9 @@
             android:layout_height="60dp"
             android:padding="5dp"
             android:src="@drawable/ic_launcher_background"
-            app:loadImageOff="@{dataOffline.path}"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:loadImageOff="@{dataOffline.path}" />
 
         <TextView
             android:id="@+id/tvMusicFileName"

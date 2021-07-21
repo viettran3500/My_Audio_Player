@@ -2,43 +2,34 @@ package com.viet.myaudioplayer.activity
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.content.ContentUris
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.database.Cursor
-import android.net.ConnectivityManager
-import android.net.Uri
-import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.MediaStore
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.google.android.material.tabs.TabLayoutMediator
 import com.viet.myaudioplayer.R
 import com.viet.myaudioplayer.viewmodel.SongViewModel
 import com.viet.myaudioplayer.adapter.ViewPagerAdapter
+import com.viet.myaudioplayer.databinding.ActivityMainBinding
 import com.viet.myaudioplayer.fragment.*
 import com.viet.myaudioplayer.model.MusicFiles
 import com.viet.myaudioplayer.model.SongInfo
-import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
     val REQUEST_CODE = 1
-    lateinit var viewPagerAdapter: ViewPagerAdapter
-    val topSongsFragment: TopSongsFragment = TopSongsFragment()
-    val searchFragment: SearchFragment = SearchFragment()
-    val favoriteSongFragment: FavoriteSongFragment = FavoriteSongFragment()
+    private lateinit var viewPagerAdapter: ViewPagerAdapter
+    private val topSongsFragment: TopSongsFragment = TopSongsFragment()
+    private val searchFragment: SearchFragment = SearchFragment()
+    private val favoriteSongFragment: FavoriteSongFragment = FavoriteSongFragment()
 
     companion object {
         var musicFiles: MutableList<MusicFiles> = mutableListOf()
@@ -56,11 +47,14 @@ class MainActivity : AppCompatActivity() {
         )[SongViewModel::class.java]
     }
 
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        setSupportActionBar(toolbar)
+        setSupportActionBar(binding.toolbar)
 
         checkkPermission()
 
@@ -69,6 +63,7 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
+    @SuppressLint("ShowToast")
     private fun checkkPermission() {
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -111,15 +106,15 @@ class MainActivity : AppCompatActivity() {
         viewPagerAdapter.addFragments(topSongsFragment, "Top Hits")
         viewPagerAdapter.addFragments(searchFragment, "Search Song")
         viewPagerAdapter.addFragments(favoriteSongFragment, "Favorite Song")
-        viewPager.adapter = viewPagerAdapter
-        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+        binding.viewPager.adapter = viewPagerAdapter
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             tab.text = viewPagerAdapter.titles[position]
         }.attach()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
         val inflater: MenuInflater = menuInflater
-        inflater.inflate(R.menu.menu_main, menu);
+        inflater.inflate(R.menu.menu_main, menu)
         return super.onCreateOptionsMenu(menu)
     }
 

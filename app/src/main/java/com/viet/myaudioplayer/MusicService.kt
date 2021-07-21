@@ -12,14 +12,12 @@ import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Binder
 import android.os.IBinder
-import android.os.ParcelFileDescriptor
 import android.support.v4.media.session.MediaSessionCompat
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.viet.myaudioplayer.activity.PlayerActivity
 import com.viet.myaudioplayer.model.MusicFiles
 import com.viet.myaudioplayer.model.SongInfo
-import java.lang.Exception
 
 class MusicService : Service(), MediaPlayer.OnCompletionListener {
 
@@ -30,15 +28,15 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         var checkPlayOnline = true
     }
 
-    var mBinder: IBinder = MyBinder()
-    var mediaPlayer: MediaPlayer? = null
-    var musicFiles: MutableList<MusicFiles> = mutableListOf()
-    var musicOnlineFiles: MutableList<SongInfo> = mutableListOf()
-    var uri: Uri? = null
+    private var mBinder: IBinder = MyBinder()
+    private var mediaPlayer: MediaPlayer? = null
+    private var musicFiles: MutableList<MusicFiles> = mutableListOf()
+    private var musicOnlineFiles: MutableList<SongInfo> = mutableListOf()
+    private var uri: Uri? = null
     var position: Int = -1
-    var actionPlaying: ActionPlaying? = null
-    lateinit var mediaSessionCompat: MediaSessionCompat
-    var checkLoad = false
+    private var actionPlaying: ActionPlaying? = null
+    private lateinit var mediaSessionCompat: MediaSessionCompat
+    private var checkLoad = false
 
 
     override fun onCreate() {
@@ -132,7 +130,7 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
                     .Builder()
                     .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
                     .build()
-            );
+            )
             mediaPlayer!!.setDataSource(musicOnlineFiles[position].source)
             mediaPlayer!!.prepareAsync()
             mediaPlayer!!.setOnPreparedListener {
@@ -255,11 +253,8 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         var notification: Notification? = null
 
         if (isOnline) {
-//            var thumb: Bitmap? = getAlbumArt(musicFiles[position].path)
-//            if (thumb == null) {
-//                thumb = BitmapFactory.decodeResource(resources, R.drawable.music)
-//            }
-            var thumb: Bitmap? = BitmapFactory.decodeResource(resources, R.drawable.music)
+
+            val thumb: Bitmap? = BitmapFactory.decodeResource(resources, R.drawable.music)
             notification =
                 NotificationCompat.Builder(this, ApplicationClass.CHANNEL_ID_2)
                     .setSmallIcon(playPauseBtn).setLargeIcon(thumb).setContentTitle(
@@ -328,7 +323,4 @@ class MusicService : Service(), MediaPlayer.OnCompletionListener {
         }
     }
 
-    override fun onUnbind(intent: Intent?): Boolean {
-        return super.onUnbind(intent)
-    }
 }

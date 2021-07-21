@@ -6,9 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import androidx.lifecycle.Observer
-import android.graphics.BitmapFactory
-import android.media.MediaMetadataRetriever
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -18,7 +15,6 @@ import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.widget.SeekBar
-import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -27,20 +23,12 @@ import com.viet.myaudioplayer.MusicService
 import com.viet.myaudioplayer.OnItemClickListener
 import com.viet.myaudioplayer.R
 import com.viet.myaudioplayer.adapter.ListSongRelatedAdapter
-import com.viet.myaudioplayer.api.ApiService
 import com.viet.myaudioplayer.databinding.ActivityPlayerBinding
 import com.viet.myaudioplayer.model.MusicFiles
 import com.viet.myaudioplayer.model.SongInfo
-import com.viet.myaudioplayer.model.infomusic.DataInfo
-import com.viet.myaudioplayer.model.recommend.ItemRecommend
 import com.viet.myaudioplayer.model.top.ItemSong
 import com.viet.myaudioplayer.viewmodel.SongOnlineViewModel
-import com.viet.myaudioplayer.viewmodel.SongViewModel
 import kotlinx.android.synthetic.main.activity_player.*
-import kotlinx.android.synthetic.main.fragment_search.view.*
-import retrofit2.Call
-import retrofit2.Callback
-import retrofit2.Response
 import java.util.*
 
 class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, OnItemClickListener {
@@ -48,7 +36,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
     companion object {
         var listSongs: MutableList<MusicFiles> = mutableListOf()
         var listSongsOnline: MutableList<SongInfo> = mutableListOf()
-        var listSongRelated: MutableList<SongInfo> = mutableListOf()
     }
 
     var list: MutableList<ItemSong> = mutableListOf()
@@ -66,7 +53,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
 
     var musicService: MusicService? = null
 
-    lateinit var listSongRelatedAdapter: ListSongRelatedAdapter
+    private lateinit var listSongRelatedAdapter: ListSongRelatedAdapter
 
     private val songOnlineViewModel: SongOnlineViewModel by lazy {
         ViewModelProvider(
@@ -474,9 +461,8 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
 
     private fun getIntentMethod() {
         position = intent.getIntExtra("position", -1)
-        val sender: String? = intent.getStringExtra("sender")
 
-        when (sender) {
+        when (intent.getStringExtra("sender")) {
             "favoriteSong" -> {
                 MusicService.isOnline = true
                 listSongsOnline = MainActivity.listMusicFavorite
@@ -523,7 +509,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
                     it.genres[i].name
             }
             binding.tvGenre.text = genre
-            Log.e("aaa", "$genre")
+            Log.e("aaa", genre)
         })
         songOnlineViewModel.loadInfo(listSongsOnline[position].id)
     }
