@@ -5,5 +5,5 @@ interface ActionPlaying {
     fun prevBtnClick()
     fun nextBtnClick()
     fun closeBtnClick()
-    fun changeBtnClick()
+
 }

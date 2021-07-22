@@ -27,6 +27,7 @@ import com.viet.myaudioplayer.databinding.ActivityPlayerBinding
 import com.viet.myaudioplayer.model.MusicFiles
 import com.viet.myaudioplayer.model.SongInfo
 import com.viet.myaudioplayer.model.top.ItemSong
+import com.viet.myaudioplayer.viewmodel.PlayViewModel
 import com.viet.myaudioplayer.viewmodel.SongOnlineViewModel
 import kotlinx.android.synthetic.main.activity_player.*
 import java.util.*
@@ -62,6 +63,13 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
         )[SongOnlineViewModel::class.java]
     }
 
+    private val playViewModel: PlayViewModel by lazy {
+        ViewModelProvider(
+            this,
+            PlayViewModel.SongViewModelFactory(this.application)
+        )[PlayViewModel::class.java]
+    }
+
     private lateinit var binding: ActivityPlayerBinding
 
     @SuppressLint("ClickableViewAccessibility")
@@ -69,6 +77,44 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
         super.onCreate(savedInstanceState)
         binding = ActivityPlayerBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        playViewModel.setShuffle(MusicService.shuffleBoolean)
+        playViewModel.getShuffle().observe(this, Observer {
+            if (it)
+                binding.btnShuffle.setImageResource(R.drawable.ic_shuffle_on)
+            else
+                binding.btnShuffle.setImageResource(R.drawable.ic_shuffle_off)
+        })
+
+        playViewModel.isRepeat.postValue(MusicService.repeatBoolean)
+        playViewModel.isRepeat.observe(this, Observer {
+            when (it) {
+                2 -> {
+                    binding.btnRepeat.setImageResource(R.drawable.ic_repeat_on)
+                }
+                1 -> {
+                    binding.btnRepeat.setImageResource(R.drawable.ic_repeat_1)
+                }
+                0 -> {
+                    binding.btnRepeat.setImageResource(R.drawable.ic_repeat_off)
+                }
+            }
+
+        })
+
+        playViewModel.isPlaying.postValue(MusicService.checkPlayOnline)
+        playViewModel.isPlaying.observe(this, Observer {
+            if (it) {
+                vumeter.resume(true)
+                binding.btnPlayPause.setImageResource(R.drawable.ic_pause)
+            } else {
+                vumeter.pause()
+                binding.btnPlayPause.setImageResource(R.drawable.ic_play)
+            }
+
+        })
+
+
 
         listSongRelatedAdapter = ListSongRelatedAdapter(this, this)
         binding.recyclerViewRelated.layoutManager =
@@ -151,67 +197,32 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
 
         })
 
-        checkShuffleRepeat()
 
         binding.btnShuffle.setOnClickListener {
-            if (MusicService.shuffleBoolean) {
-                MusicService.shuffleBoolean = false
-                binding.btnShuffle.setImageResource(R.drawable.ic_shuffle_off)
-            } else {
-                MusicService.shuffleBoolean = true
-                binding.btnShuffle.setImageResource(R.drawable.ic_shuffle_on)
-            }
+            MusicService.shuffleBoolean = !MusicService.shuffleBoolean
+            playViewModel.setShuffle(MusicService.shuffleBoolean)
         }
 
         binding.btnRepeat.setOnClickListener {
             when (MusicService.repeatBoolean) {
                 2 -> {
                     MusicService.repeatBoolean = 0
-                    binding.btnRepeat.setImageResource(R.drawable.ic_repeat_off)
+                    playViewModel.isRepeat.postValue(MusicService.repeatBoolean)
                 }
                 1 -> {
                     MusicService.repeatBoolean = 2
-                    binding.btnRepeat.setImageResource(R.drawable.ic_repeat_on)
+                    playViewModel.isRepeat.postValue(MusicService.repeatBoolean)
                 }
                 0 -> {
                     MusicService.repeatBoolean = 1
-                    binding.btnRepeat.setImageResource(R.drawable.ic_repeat_1)
+                    playViewModel.isRepeat.postValue(MusicService.repeatBoolean)
                 }
             }
-        }
-    }
-
-    private fun checkShuffleRepeat() {
-        if (MusicService.shuffleBoolean)
-            binding.btnShuffle.setImageResource(R.drawable.ic_shuffle_on)
-        else
-            binding.btnShuffle.setImageResource(R.drawable.ic_shuffle_off)
-
-        when (MusicService.repeatBoolean) {
-            2 -> {
-                binding.btnRepeat.setImageResource(R.drawable.ic_repeat_on)
-            }
-            1 -> {
-                binding.btnRepeat.setImageResource(R.drawable.ic_repeat_1)
-            }
-            0 -> {
-                binding.btnRepeat.setImageResource(R.drawable.ic_repeat_off)
-            }
-        }
-
-        if (MusicService.checkPlayOnline) {
-            vumeter.resume(true)
-            binding.btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
-
-        } else {
-            vumeter.pause()
-            binding.btnPlayPause.setBackgroundResource(R.drawable.ic_play)
         }
     }
 
     override fun onResume() {
         handler.post(runnable)
-        checkShuffleRepeat()
         val intent = Intent(this, MusicService::class.java)
         bindService(intent, this, Context.BIND_AUTO_CREATE)
         playThreadBtn()
@@ -248,7 +259,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
             musicService!!.stop()
             musicService!!.release()
             if (MusicService.isOnline) {
-                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean != 1) {
                     position = getRandom(listSongsOnline.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = if ((position - 1) < 0) listSongsOnline.size - 1 else position - 1
@@ -257,7 +268,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
                 binding.tvSongName.text = listSongsOnline[position].title
                 binding.tvSongArtist.text = listSongsOnline[position].artistsNames
             } else {
-                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean != 1) {
                     position = getRandom(listSongs.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = if ((position - 1) < 0) listSongs.size - 1 else position - 1
@@ -271,15 +282,13 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
             binding.seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
-            vumeter.resume(true)
             musicService!!.showNotification(R.drawable.ic_pause)
-            binding.btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
             musicService!!.start()
         } else {
             musicService!!.stop()
             musicService!!.release()
             if (MusicService.isOnline) {
-                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean != 1) {
                     position = getRandom(listSongsOnline.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = if ((position - 1) < 0) listSongsOnline.size - 1 else position - 1
@@ -288,7 +297,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
                 binding.tvSongName.text = listSongsOnline[position].title
                 binding.tvSongArtist.text = listSongsOnline[position].artistsNames
             } else {
-                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean != 1) {
                     position = getRandom(listSongs.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = if ((position - 1) < 0) listSongs.size - 1 else position - 1
@@ -303,9 +312,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
             binding.seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
-            vumeter.pause()
             musicService!!.showNotification(R.drawable.ic_play)
-            binding.btnPlayPause.setBackgroundResource(R.drawable.ic_play)
         }
     }
 
@@ -329,7 +336,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
             musicService!!.stop()
             musicService!!.release()
             if (MusicService.isOnline) {
-                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean != 1) {
                     position = getRandom(listSongsOnline.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = (position + 1) % listSongsOnline.size
@@ -338,7 +345,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
                 binding.tvSongName.text = listSongsOnline[position].title
                 binding.tvSongArtist.text = listSongsOnline[position].artistsNames
             } else {
-                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean != 1) {
                     position = getRandom(listSongs.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = (position + 1) % listSongs.size
@@ -354,15 +361,13 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
             binding.seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
-            vumeter.resume(true)
             musicService!!.showNotification(R.drawable.ic_pause)
-            binding.btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
             musicService!!.start()
         } else {
             musicService!!.stop()
             musicService!!.release()
             if (MusicService.isOnline) {
-                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean != 1) {
                     position = getRandom(listSongsOnline.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = (position + 1) % listSongsOnline.size
@@ -371,7 +376,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
                 binding.tvSongName.text = listSongsOnline[position].title
                 binding.tvSongArtist.text = listSongsOnline[position].artistsNames
             } else {
-                if (MusicService.shuffleBoolean && MusicService.repeatBoolean == 1) {
+                if (MusicService.shuffleBoolean && MusicService.repeatBoolean != 1) {
                     position = getRandom(listSongs.size - 1)
                 } else if (!MusicService.shuffleBoolean && (MusicService.repeatBoolean == 2 || MusicService.repeatBoolean == 0)) {
                     position = (position + 1) % listSongs.size
@@ -386,9 +391,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
             binding.seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
-            vumeter.pause()
             musicService!!.showNotification(R.drawable.ic_play)
-            binding.btnPlayPause.setBackgroundResource(R.drawable.ic_play)
         }
     }
 
@@ -400,9 +403,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
         finish()
     }
 
-    override fun changeBtnClick() {
-        binding.btnPlayPause.setBackgroundResource(R.drawable.ic_play)
-    }
+
 
     private fun getRandom(i: Int): Int {
         val random = Random()
@@ -428,16 +429,14 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
     override fun playPauseBtnClick() {
         if (MusicService.checkPlayOnline) {
             MusicService.checkPlayOnline = false
-            vumeter.pause()
-            binding.btnPlayPause.setImageResource(R.drawable.ic_play)
+            playViewModel.isPlaying.postValue(MusicService.checkPlayOnline)
             musicService!!.showNotification(R.drawable.ic_play)
             musicService!!.pause()
             binding.seekBar.max = musicService!!.getDuration() / 1000
             handler.removeCallbacks(runnable)
         } else {
             MusicService.checkPlayOnline = true
-            vumeter.resume(true)
-            binding.btnPlayPause.setImageResource(R.drawable.ic_pause)
+            playViewModel.isPlaying.postValue(MusicService.checkPlayOnline)
             musicService!!.showNotification(R.drawable.ic_pause)
             musicService!!.start()
             binding.seekBar.max = musicService!!.getDuration() / 1000
@@ -481,7 +480,6 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
             }
         }
 
-        binding.btnPlayPause.setImageResource(R.drawable.ic_pause)
         val intent = Intent(this, MusicService::class.java)
         intent.putExtra("servicePosition", position)
         startService(intent)
@@ -537,11 +535,9 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
 
         musicService!!.onCompleted()
         if (MusicService.checkPlayOnline) {
-            binding.btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
             musicService!!.showNotification(R.drawable.ic_pause)
         } else {
             musicService!!.showNotification(R.drawable.ic_play)
-            binding.btnPlayPause.setBackgroundResource(R.drawable.ic_play)
         }
 
     }
@@ -575,9 +571,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
             binding.seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
-            vumeter.resume(true)
             musicService!!.showNotification(R.drawable.ic_pause)
-            binding.btnPlayPause.setBackgroundResource(R.drawable.ic_pause)
             musicService!!.start()
         } else {
             musicService!!.stop()
@@ -592,9 +586,7 @@ class PlayerActivity : AppCompatActivity(), ActionPlaying, ServiceConnection, On
             binding.seekBar.max = musicService!!.getDuration() / 1000
             handler.post(runnable)
             musicService!!.onCompleted()
-            vumeter.pause()
             musicService!!.showNotification(R.drawable.ic_play)
-            binding.btnPlayPause.setBackgroundResource(R.drawable.ic_play)
         }
     }
 }
